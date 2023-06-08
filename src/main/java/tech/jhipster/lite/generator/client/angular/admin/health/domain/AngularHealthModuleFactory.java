@@ -27,10 +27,10 @@ public class AngularHealthModuleFactory {
 
   private static final String ADMIN_ROUTING =
     """
-      {
-        path: 'admin',
-        loadChildren: () => import('./admin/admin-routing.module').then(m => m.AdminRoutingModule),
-      },\
+        {
+          path: 'admin',
+          loadChildren: () => import('./admin/admin-routing.module'),
+        },\
       """;
 
   public JHipsterModule buildModule(JHipsterModuleProperties properties) {

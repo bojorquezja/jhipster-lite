@@ -14,10 +14,10 @@ import { MatMenuModule } from '@angular/material/menu';
   standalone: true,
   styleUrls: ['./app.component.css'],
 })
-export class AppComponent implements OnInit{
+export class AppComponent implements OnInit {
   appName = '';
 
   ngOnInit(): void {
-    this.appName = '{{baseName}}';
+    this.appName = 'jhipster';
   }
 }

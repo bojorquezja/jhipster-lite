@@ -98,7 +98,6 @@ class FileSystemJHipsterModulesRepositoryTest {
         .containing("<spring-boot.version>")
         .containing("</spring-boot.version>")
         .containing("<artifactId>spring-boot-starter</artifactId>")
-        .containing("<artifactId>problem-spring-web</artifactId>")
         .notContaining(
           """
               <dependency>
@@ -204,16 +203,33 @@ class FileSystemJHipsterModulesRepositoryTest {
             """)
         .and()
       .hasFile("src/main/resources/config/application.properties")
+        .containing("""
+            # This is a comment
+            springdoc.swagger-ui.operationsSorter""")
         .containing("springdoc.swagger-ui.operationsSorter=alpha")
         .and()
       .hasFile("src/main/resources/config/application-local.properties")
+        .containing("""
+            # This is a comment
+            springdoc.swagger-ui.tryItOutEnabled""")
         .containing("springdoc.swagger-ui.tryItOutEnabled=false")
         .and()
       .hasFile("src/test/resources/config/application.properties")
+        .containing("""
+            # This is a comment
+            springdoc.swagger-ui.operationsSorter""")
         .containing("springdoc.swagger-ui.operationsSorter=test")
         .and()
       .hasFile("src/test/resources/config/application-local.properties")
-        .containing("springdoc.swagger-ui.tryItOutEnabled=test")
+        .containing("""
+            ## Swagger properties
+            springdoc.swagger-ui.operationsSorter=test
+            springdoc.swagger-ui.tagsSorter=test
+            # This is a comment
+            springdoc.swagger-ui.tryItOutEnabled=test""")
+        .and()
+      .hasFile("src/test/resources/META-INF/spring.factories")
+        .containing("o.s.c.ApplicationListener=c.m.m.MyListener1,c.m.m.MyListener2")
         .and()
       .hasFile("README.md")
         .containing(

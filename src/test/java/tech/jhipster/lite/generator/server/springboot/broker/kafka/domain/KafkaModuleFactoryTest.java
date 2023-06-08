@@ -43,7 +43,7 @@ class KafkaModuleFactoryTest {
       module,
       pomFile(),
       new ModuleFile(
-        "src/main/resources/generator/server/springboot/core/IntegrationTest.java.mustache",
+        "src/main/resources/generator/server/springboot/core/test/IntegrationTest.java.mustache",
         "src/test/java/com/jhipster/test/IntegrationTest.java"
       ),
       readmeFile()
@@ -88,6 +88,11 @@ class KafkaModuleFactoryTest {
       .hasPrefixedFiles("documentation", "apache-kafka.md")
       .hasFile("README.md")
       .containing("[Apache Kafka](documentation/apache-kafka.md)")
+      .containing("""
+        ```bash
+        docker compose -f src/main/docker/kafka.yml up -d
+        ```
+        """)
       .and();
   }
 
@@ -138,6 +143,14 @@ class KafkaModuleFactoryTest {
 
     JHipsterModule module = factory.buildModuleAkhq(properties);
 
-    assertThatModuleWithFiles(module, pomFile()).hasFile("src/main/docker/akhq.yml").and();
+    assertThatModuleWithFiles(module, pomFile(), readmeFile())
+      .hasFile("src/main/docker/akhq.yml")
+      .and()
+      .hasFile("README.md")
+      .containing("""
+        ```bash
+        docker compose -f src/main/docker/akhq.yml up -d
+        ```
+        """);
   }
 }

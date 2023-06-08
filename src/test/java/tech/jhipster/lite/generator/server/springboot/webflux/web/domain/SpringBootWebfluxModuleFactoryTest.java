@@ -15,14 +15,14 @@ class SpringBootWebfluxModuleFactoryTest {
   private static final SpringBootWebfluxModuleFactory factory = new SpringBootWebfluxModuleFactory();
 
   @Test
-  void shouldBuildModule() {
+  void shouldBuildWebfluxNettyModule() {
     JHipsterModuleProperties properties = JHipsterModulesFixture
       .propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .put("serverPort", 9000)
       .build();
 
-    JHipsterModule module = factory.buildModule(properties);
+    JHipsterModule module = factory.buildNettyModule(properties);
 
     assertThatModuleWithFiles(module, pomFile())
       .hasFile("pom.xml")
@@ -51,20 +51,11 @@ class SpringBootWebfluxModuleFactoryTest {
             </dependency>
         """
       )
-      .containing(
-        """
-            <dependency>
-              <groupId>org.zalando</groupId>
-              <artifactId>problem-spring-webflux</artifactId>
-              <version>${problem-spring.version}</version>
-            </dependency>
-        """
-      )
       .and()
       .hasFile("src/main/resources/config/application.properties")
       .containing("server.port=9000")
       .containing("application.exception.details=false")
-      .containing("application.exception.package=org.,java.,net.,javax.,com.,io.,de.,com.jhipster.test")
+      .containing("application.exception.package=org.,java.,net.,jakarta.,com.,io.,de.,com.jhipster.test")
       .and()
       .hasFile("src/test/resources/config/application.properties")
       .containing("server.port=0")
@@ -72,19 +63,12 @@ class SpringBootWebfluxModuleFactoryTest {
       .and()
       .hasPrefixedFiles(
         "src/main/java/com/jhipster/test/technical/infrastructure/primary/exception/",
-        "ProblemConfiguration.java",
         "HeaderUtil.java",
-        "BadRequestAlertException.java",
-        "ErrorConstants.java",
-        "ExceptionTranslator.java",
         "FieldErrorDTO.java"
       )
       .hasPrefixedFiles(
         "src/test/java/com/jhipster/test/technical/infrastructure/primary/exception/",
         "HeaderUtilTest.java",
-        "BadRequestAlertExceptionTest.java",
-        "ExceptionTranslatorIT.java",
-        "ExceptionTranslatorTestController.java",
         "FieldErrorDTOTest.java"
       )
       .hasFiles("src/test/java/com/jhipster/test/TestUtil.java");

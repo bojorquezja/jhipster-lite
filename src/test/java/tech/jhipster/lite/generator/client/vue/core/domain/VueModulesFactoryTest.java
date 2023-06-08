@@ -26,6 +26,7 @@ class VueModulesFactoryTest {
 
     //@formatter:off
     assertThatModuleWithFiles(module, packageJsonFile(), lintStagedConfigFile())
+      .hasFiles("documentation/vue.md")
       .hasFile("package.json")
         .containing(nodeDependency("vue"))
         .containing(nodeDependency("@rushstack/eslint-patch"))
@@ -49,11 +50,11 @@ class VueModulesFactoryTest {
         .containing(nodeDependency("vue-router"))
         .containing("\"build\": \"vue-tsc -p tsconfig.build.json --noEmit && vite build --emptyOutDir\"")
         .containing("\"dev\": \"vite\"")
+        .containing("\"lint\": \"eslint --ext .js,.ts,.vue src\"")
         .containing("\"preview\": \"vite preview\"")
         .containing("\"start\": \"vite\"")
         .containing("\"test\": \"vitest run --coverage\"")
         .containing("\"test:watch\": \"vitest --\"")
-        .containing("  \"jestSonar\": {\n    \"reportPath\": \"target/test-results\",\n    \"reportFile\": \"TESTS-results-sonar.xml\"\n  },")
         .and()
       .hasFile(".lintstagedrc.js")
         .containing(
@@ -65,7 +66,7 @@ class VueModulesFactoryTest {
             """
         )
       .and()
-      .hasPrefixedFiles("", ".eslintrc.js", "tsconfig.json", "tsconfig.build.json", "vite.config.ts", "vitest.config.ts")
+      .hasPrefixedFiles("", ".eslintignore", ".eslintrc.js", "tsconfig.json", "tsconfig.build.json", "vite.config.ts", "vitest.config.ts")
       .hasFiles("src/main/webapp/app/http/AxiosHttp.ts")
       .hasPrefixedFiles("src/test/javascript/spec/http", "AxiosHttp.spec.ts", "AxiosHttpStub.ts", "AxiosStub.ts")
       .hasFiles("src/main/webapp/index.html")
@@ -86,7 +87,13 @@ class VueModulesFactoryTest {
       .hasPrefixedFiles("src/main/webapp/app/common/domain", "Logger.ts", "Message.ts")
       .hasFiles("src/main/webapp/app/common/secondary/ConsoleLogger.ts")
       .hasFiles("src/test/javascript/spec/common/domain/Logger.fixture.ts")
-      .hasFiles("src/test/javascript/spec/common/secondary/ConsoleLogger.spec.ts");
+      .hasFiles("src/test/javascript/spec/common/secondary/ConsoleLogger.spec.ts")
+      .hasFiles("src/main/webapp/app/vue/VueProp.ts")
+      .hasFiles(
+        "src/test/javascript/spec/vue/vue-prop/ArrayComponentVue.vue",
+        "src/test/javascript/spec/vue/vue-prop/ObjectComponentVue.vue",
+        "src/test/javascript/spec/vue/vue-prop/VueProp.spec.ts"
+      );
     //@formatter:on
   }
 

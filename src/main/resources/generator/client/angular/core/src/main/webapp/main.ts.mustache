@@ -1,8 +1,8 @@
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { enableProdMode, importProvidersFrom } from '@angular/core';
-import { bootstrapApplication } from '@angular/platform-browser';
+import { REMOVE_STYLES_ON_COMPONENT_DESTROY, bootstrapApplication } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { routes } from './app/app.route';
 import { AppComponent } from './app/app.component';
@@ -15,6 +15,9 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
-    importProvidersFrom([BrowserAnimationsModule, HttpClientModule, RouterModule.forRoot(routes)]),
+    provideHttpClient(),
+    provideRouter(routes),
+    importProvidersFrom([BrowserAnimationsModule]),
+    { provide: REMOVE_STYLES_ON_COMPONENT_DESTROY, useValue: true },
   ],
 }).catch(err => console.error(err));

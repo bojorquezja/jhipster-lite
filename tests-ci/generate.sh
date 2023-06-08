@@ -44,27 +44,6 @@ applyModules() {
   done
 }
 
-spring_boot_mvc() {
-  spring_boot
-
-  applyModules \
-  "spring-boot-tomcat" \
-  "zalando-problems"
-}
-
-spring_boot_undertow() {
-  applyModules \
-  "init" \
-  "maven-java" \
-  "github-actions" \
-  "java-base" \
-  "jacoco-check-min-coverage" \
-  "spring-boot" \
-  "spring-boot-undertow" \
-  "zalando-problems" \
-  "spring-boot-actuator"
-}
-
 spring_boot() {
   applyModules \
   "init" \
@@ -72,7 +51,30 @@ spring_boot() {
   "github-actions" \
   "java-base" \
   "jacoco-check-min-coverage" \
-  "spring-boot" \
+  "spring-boot"
+}
+
+spring_boot_mvc() {
+  spring_boot
+
+  applyModules \
+  "spring-boot-tomcat" \
+  "spring-boot-actuator"
+}
+
+spring_boot_undertow() {
+  spring_boot
+
+  applyModules \
+  "spring-boot-undertow" \
+  "spring-boot-actuator"
+}
+
+spring_boot_webflux() {
+  spring_boot
+
+  applyModules \
+  "spring-boot-webflux-netty" \
   "spring-boot-actuator"
 }
 
@@ -90,7 +92,7 @@ cucumber_with_jwt() {
   "spring-boot-jwt-basic-auth" \
   "springdoc-mvc-openapi" \
   "springdoc-jwt" \
-  "spring-boot-cucumber" \
+  "spring-boot-cucumber-mvc" \
   "spring-boot-cucumber-jwt-authentication"
 }
 
@@ -102,11 +104,18 @@ elif [[ $application == 'fullstack' ]]; then
   spring_boot_mvc
   sonar_back_front
 
+elif [[ $application == 'gradleapp' ]]; then
+  applyModules \
+    "init" \
+    "gradle-java" \
+    "java-base"
+
 elif [[ $application == 'fullapp' ]]; then
   spring_boot_mvc
   sonar_back_front
 
   applyModules \
+  "prettier" \
   "infinitest-filters" \
   "pagination-domain" \
   "rest-pagination" \
@@ -117,9 +126,12 @@ elif [[ $application == 'fullapp' ]]; then
   "jib" \
   "dockerfile" \
   "java-archunit" \
+  "git-information" \
   "github-codespaces" \
   "gitpod" \
   "java-memoizers" \
+  "java-enums" \
+  "internationalized-errors" \
   "spring-boot-cache" \
   "caffeine-cache"
 
@@ -128,14 +140,18 @@ elif [[ $application == 'fullapp' ]]; then
   applyModules "spring-boot-cucumber-jpa-reset"
   applyModules "application-service-hexagonal-architecture-documentation"
 
-  applyModules "postgresql" "postgresql-dialect" "liquibase"
+  applyModules "postgresql" "liquibase"
 
   applyModules \
+  "kipe-expression" \
+  "kipe-authorization" \
   "dummy-feature" \
   "dummy-jpa-persistence" \
   "dummy-liquibase-changelog" \
 
   applyModules "ehcache-java-config"
+
+  applyModules "hibernate-2nd-level-cache"
 
   applyModules "frontend-maven-plugin" "vue-core"
 
@@ -144,14 +160,19 @@ elif [[ $application == 'oauth2app' ]]; then
   sonar_back
 
   applyModules \
+  "java-memoizers" \
+
+  applyModules \
   "spring-boot-oauth2" \
   "spring-boot-oauth2-account" \
   "springdoc-mvc-openapi" \
   "springdoc-oauth2"
 
   applyModules \
-  "spring-boot-cucumber" \
+  "spring-boot-cucumber-mvc" \
   "spring-boot-cucumber-oauth2-authentication" \
+  "kipe-expression" \
+  "kipe-authorization" \
   "dummy-feature"
 
 elif [[ $application == 'mysqlapp' ]]; then
@@ -165,6 +186,8 @@ elif [[ $application == 'mysqlapp' ]]; then
   applyModules "spring-boot-cucumber-jpa-reset"
 
   applyModules \
+  "kipe-expression" \
+  "kipe-authorization" \
   "dummy-feature" \
   "dummy-jpa-persistence" \
   "dummy-liquibase-changelog" \
@@ -197,6 +220,8 @@ elif [[ $application == 'flywayapp' ]]; then
   applyModules "spring-boot-cucumber-jpa-reset"
 
   applyModules \
+  "kipe-expression" \
+  "kipe-authorization" \
   "dummy-feature" \
   "dummy-jpa-persistence" \
   "dummy-postgresql-flyway-changelog" \
@@ -214,6 +239,8 @@ elif [[ $application == 'undertowapp' ]]; then
   applyModules "spring-boot-cucumber-jpa-reset"
 
   applyModules \
+  "kipe-expression" \
+  "kipe-authorization" \
   "dummy-feature" \
   "dummy-jpa-persistence" \
   "dummy-not-postgresql-flyway-changelog" \
@@ -235,11 +262,10 @@ elif [[ $application == 'consulapp' ]]; then
   applyModules "consul"
 
 elif [[ $application == 'gatewayapp' ]]; then
-  spring_boot
+  spring_boot_webflux
   sonar_back
 
   applyModules \
-  "spring-boot-webflux-netty" \
   "eureka-client" \
   "spring-cloud" \
   "gateway"
@@ -253,8 +279,34 @@ elif [[ $application == 'mongodbapp' ]]; then
   cucumber_with_jwt
 
   applyModules \
+  "kipe-expression" \
+  "kipe-authorization" \
   "dummy-feature" \
   "dummy-mongodb-persistence"
+
+elif [[ $application == 'redisapp' ]]; then
+  spring_boot_mvc
+  sonar_back
+
+  applyModules "redis"
+
+  cucumber_with_jwt
+
+elif [[ $application == 'cassandraapp' ]]; then
+  spring_boot_mvc
+  sonar_back
+
+  applyModules 
+  "cassandra" \
+  "cassandra-migration"
+
+  cucumber_with_jwt
+
+  applyModules   
+  "kipe-expression" \
+  "kipe-authorization" \
+  "dummy-feature" \
+  "dummy-cassandra-persistence"
 
 elif [[ $application == 'neo4japp' ]]; then
   spring_boot_mvc
@@ -279,6 +331,9 @@ elif [[ $application == 'angularapp' ]]; then
 elif [[ $application == 'angularoauth2app' ]]; then
   spring_boot_mvc
   sonar_back_front
+
+  applyModules \
+  "java-memoizers" \
 
   applyModules \
   "frontend-maven-plugin" \
@@ -338,12 +393,10 @@ elif [[ $application == 'pulsarapp' ]]; then
   applyModules "spring-boot-pulsar"
 
 elif [[ $application == 'reactiveapp' ]]; then
-  spring_boot
+  spring_boot_webflux
   sonar_back
 
   applyModules \
-  "spring-boot-webflux-netty" \
-  "spring-boot-actuator" \
   "springdoc-webflux-openapi"
 
 elif [[ $application == 'customjhlite' ]]; then

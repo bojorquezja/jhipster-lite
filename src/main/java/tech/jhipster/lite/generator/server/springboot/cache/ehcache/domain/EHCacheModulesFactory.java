@@ -7,8 +7,6 @@ import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.LogLevel;
 import tech.jhipster.lite.module.domain.file.JHipsterDestination;
 import tech.jhipster.lite.module.domain.file.JHipsterSource;
-import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
-import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
 
 public class EHCacheModulesFactory {
@@ -48,19 +46,9 @@ public class EHCacheModulesFactory {
   public JHipsterModule buildXmlConfigurationModule(JHipsterModuleProperties properties) {
     Assert.notNull("properties", properties);
 
-    String packagePath = properties.packagePath();
-
     //@formatter:off
     return commonEHCacheModuleBuilder(properties)
-      .javaDependencies()
-        .addDependency(groupId("jakarta.xml.bind"), artifactId("jakarta.xml.bind-api"))
-        .addDependency(jaxbRuntimeDependency())
-        .and()
       .files()
-        .add(
-          MAIN_SOURCE.template("XmlCacheConfiguration.java"),
-          toSrcMainJava().append(packagePath).append(CACHE_SECONDARY).append("CacheConfiguration.java")
-        )
         .add(SOURCE.file("resources/ehcache.xml"), to("src/main/resources/config/ehcache/ehcache.xml"))
         .and()
       .springMainProperties()
@@ -70,17 +58,12 @@ public class EHCacheModulesFactory {
     //@formatter:on
   }
 
-  private JavaDependency jaxbRuntimeDependency() {
-    return javaDependency().groupId("org.glassfish.jaxb").artifactId("jaxb-runtime").scope(JavaDependencyScope.RUNTIME).build();
-  }
-
   private JHipsterModuleBuilder commonEHCacheModuleBuilder(JHipsterModuleProperties properties) {
     //@formatter:off
     return moduleBuilder(properties)
       .javaDependencies()
-        .addDependency(groupId("org.springframework.boot"), artifactId("spring-boot-starter-cache"))
         .addDependency(groupId("javax.cache"), artifactId("cache-api"))
-        .addDependency(groupId(EHCACHE_GROUP), artifactId("ehcache"))
+        .addDependency(javaDependency().groupId(EHCACHE_GROUP).artifactId("ehcache").classifier("jakarta").build())
         .and()
       .springMainLogger(EHCACHE_GROUP, LogLevel.WARN)
       .springTestLogger(EHCACHE_GROUP, LogLevel.WARN);

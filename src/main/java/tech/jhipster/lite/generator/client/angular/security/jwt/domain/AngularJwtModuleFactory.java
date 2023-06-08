@@ -15,10 +15,10 @@ import tech.jhipster.lite.module.domain.replacement.TextNeedleBeforeReplacer;
 
 public class AngularJwtModuleFactory {
 
-  private static final Pattern PROVIDERS_PATTERN = Pattern.compile("(providers: *\\[)");
-  private static final ElementReplacer EXISTING_PROVIDERS_NEEDLE = new RegexReplacer(
-    (contentBeforeReplacement, replacement) -> PROVIDERS_PATTERN.matcher(contentBeforeReplacement).find(),
-    PROVIDERS_PATTERN
+  private static final Pattern PROVIDE_HTTP_CLIENT_PATTERN = Pattern.compile("provideHttpClient\\(\\),");
+  private static final ElementReplacer EXISTING_PROVIDE_HTTP_CLIENT_NEEDLE = new RegexReplacer(
+    (contentBeforeReplacement, replacement) -> PROVIDE_HTTP_CLIENT_PATTERN.matcher(contentBeforeReplacement).find(),
+    PROVIDE_HTTP_CLIENT_PATTERN
   );
 
   private static final TextNeedleBeforeReplacer ROUTE_NEEDLE = lineBeforeText("// jhipster-needle-angular-route");
@@ -27,10 +27,10 @@ public class AngularJwtModuleFactory {
     """
       {
         path: '',
-        loadComponent: () => import('./login/login.component').then(m => m.LoginComponent),
+        loadComponent: () => import('./login/login.component'),
         title: 'Login',
-      },
-      """;
+      },\
+    """;
 
   private static final String AUTH_INTERCEPTOR_IMPORT = """
       import { AuthInterceptor } from './app/auth/auth.interceptor';
@@ -42,8 +42,6 @@ public class AngularJwtModuleFactory {
 
   public JHipsterModule buildModule(JHipsterModuleProperties properties) {
     Assert.notNull("properties", properties);
-
-    Indentation indentation = properties.indentation();
 
     //@formatter:off
     return moduleBuilder(properties)
@@ -70,11 +68,11 @@ public class AngularJwtModuleFactory {
         .and()
       .mandatoryReplacements()
         .in(path("src/main/webapp/main.ts"))
-          .add(EXISTING_PROVIDERS_NEEDLE, "providers: [{ provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },")
+          .add(EXISTING_PROVIDE_HTTP_CLIENT_NEEDLE, "provideHttpClient(withInterceptors([AuthInterceptor])),")
           .add(fileStart(), AUTH_INTERCEPTOR_IMPORT)
           .and()
         .in(path("src/main/webapp/app/app.route.ts"))
-          .add(ROUTE_NEEDLE, LOGIN_MODULE_ROUTE.indent(indentation.spacesCount()))
+          .add(ROUTE_NEEDLE, LOGIN_MODULE_ROUTE)
           .and()
         .and()
       .build();

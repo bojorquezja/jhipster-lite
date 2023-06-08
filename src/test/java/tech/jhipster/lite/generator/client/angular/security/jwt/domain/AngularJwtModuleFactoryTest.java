@@ -44,14 +44,13 @@ class AngularJwtModuleFactoryTest {
         "login.component.ts"
       )
       .hasFile("src/main/webapp/app/login/login.component.spec.ts")
-      .containing(".toEqual('jhipster')")
       .and()
       .hasFile("src/main/webapp/app/app.route.ts")
       .containing(
         """
               {
                 path: '',
-                loadComponent: () => import('./login/login.component').then(m => m.LoginComponent),
+                loadComponent: () => import('./login/login.component'),
                 title: 'Login',
               },
             """

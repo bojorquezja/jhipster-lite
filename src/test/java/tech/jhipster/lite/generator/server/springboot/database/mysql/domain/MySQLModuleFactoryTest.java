@@ -49,15 +49,15 @@ class MySQLModuleFactoryTest {
       .containing(
         """
               <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
                 <scope>runtime</scope>
               </dependency>
           """
       )
       .containing("<groupId>com.zaxxer</groupId>")
       .containing("<artifactId>HikariCP</artifactId>")
-      .containing("<groupId>org.hibernate</groupId>")
+      .containing("<groupId>org.hibernate.orm</groupId>")
       .containing("<artifactId>hibernate-core</artifactId>")
       .containing("<groupId>org.testcontainers</groupId>")
       .containing("<artifactId>mysql</artifactId>")
@@ -66,7 +66,7 @@ class MySQLModuleFactoryTest {
       .containing("spring.datasource.url=jdbc:mysql://localhost:3306/myapp")
       .containing("spring.datasource.username=root")
       .containing("spring.datasource.password=")
-      .containing("spring.datasource.driver-class-name=com.mysql.jdbc.Driver")
+      .containing("spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver")
       .containing("spring.datasource.type=com.zaxxer.hikari.HikariDataSource")
       .containing("spring.datasource.hikari.poolName=Hikari")
       .containing("spring.datasource.hikari.auto-commit=false")

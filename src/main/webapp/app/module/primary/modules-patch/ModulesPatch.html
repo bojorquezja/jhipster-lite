@@ -1,6 +1,4 @@
-<div class="jhipster-modules jhlite-loader-container" v-if="content.isLoading()" data-selector="modules-loader">
-  <div class="jhlite-loader"></div>
-</div>
+<ModulesPatchLoaderVue v-if="content.isLoading()" />
 <div class="jhipster-modules jhlite-menu-content-template" v-else data-selector="modules-list">
   <div class="jhipster-modules-list jhlite-menu-content-template--content">
     <div class="jhipster-modules-filters">
@@ -48,14 +46,14 @@
                 propertiesType="MANDATORY"
                 :propertiesDefinitions="mandatoryProperties(module.slug)"
                 :moduleSlug="module.slug"
-                :moduleParameters="moduleParameters"
+                :moduleParameters="moduleParametersValues"
                 :selected="isModuleSelected(module.slug)"
               />
               <ModuleParametersVue
                 propertiesType="OPTIONAL"
                 :propertiesDefinitions="optionalProperties(module.slug)"
                 :moduleSlug="module.slug"
-                :moduleParameters="moduleParameters"
+                :moduleParameters="moduleParametersValues"
                 :selected="isModuleSelected(module.slug)"
               />
             </div>
@@ -97,7 +95,7 @@
         <ModulePropertiesFormVue
           :folderPath="folderPath"
           :properties="selectedModuleProperties()"
-          :parameters="moduleParameters"
+          :parameters="moduleParametersValues"
           @moduleCommitUpdated="updateModuleCommit"
           @folderPathUpdated="updateFolderPath"
           @folderPathSelected="projectFolderUpdated"

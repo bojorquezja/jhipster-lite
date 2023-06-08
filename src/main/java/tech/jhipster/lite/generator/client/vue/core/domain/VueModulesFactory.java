@@ -13,20 +13,35 @@ import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
 public class VueModulesFactory {
 
   private static final JHipsterSource SOURCE = from("client/vue");
+  private static final JHipsterSource DOCUMENTATION_SOURCE = SOURCE.append("documentation");
+  private static final JHipsterSource TEST_SOURCE = SOURCE.append("test/spec");
   private static final JHipsterSource IMAGE_SOURCE = SOURCE.append("webapp/content/images");
   private static final JHipsterSource COMMON_PRIMARY_SOURCE = SOURCE.append("webapp/app/common/primary");
   private static final JHipsterSource COMMON_PRIMARY_TEST_SOURCE = SOURCE.append("test/spec/common/primary");
+  private static final JHipsterSource COMMON_ESLINT = from("client/common/eslint");
 
   private static final JHipsterDestination MAIN_DESTINATION = to("src/main/webapp/app");
+  private static final JHipsterDestination TEST_DESTINATION = to("src/test/javascript/spec");
   private static final JHipsterDestination MAIN_PRIMARY_DESTINATION = MAIN_DESTINATION.append("common/primary");
   private static final JHipsterDestination COMMON_PRIMARY_TEST_DESTINATION = to("src/test/javascript/spec/common/primary");
 
   private static final String IMPORT_NEEDLE = "// jhipster-needle-main-ts-import";
   private static final String PROVIDER_NEEDLE = "// jhipster-needle-main-ts-provider";
+  private static final String PINIA_IMPORTS =
+    """
+    import { createPinia } from 'pinia';
+    import piniaPersist from 'pinia-plugin-persist';
+    """;
+  private static final String PINIA_PROVIDER = """
+    const pinia = createPinia();
+    pinia.use(piniaPersist);
+    app.use(pinia);
+    """;
 
   public JHipsterModule buildVueModule(JHipsterModuleProperties properties) {
     //@formatter:off
     return ClientsModulesFactory.clientModuleBuilder(properties)
+      .documentation(documentationTitle("Vue"), DOCUMENTATION_SOURCE.file("vue.md"))
       .packageJson()
         .addDependency(packageName("vue"), VUE)
         .addDependency(packageName("axios"), VUE)
@@ -50,6 +65,7 @@ public class VueModulesFactory {
         .addDevDependency(packageName("sinon"), VUE)
         .addScript(scriptKey("build"), scriptCommand("vue-tsc -p tsconfig.build.json --noEmit && vite build --emptyOutDir"))
         .addScript(scriptKey("dev"), scriptCommand("vite"))
+        .addScript(scriptKey("lint"), scriptCommand("eslint --ext .js,.ts,.vue src"))
         .addScript(scriptKey("preview"), scriptCommand("vite preview"))
         .addScript(scriptKey("start"), scriptCommand("vite"))
         .addScript(scriptKey("test"), scriptCommand("vitest run --coverage"))
@@ -62,6 +78,7 @@ public class VueModulesFactory {
         .add(SOURCE.file("vite.config.ts"), to("vite.config.ts"))
         .add(SOURCE.file("vitest.config.ts"), to("vitest.config.ts"))
         .add(SOURCE.template("webapp/app/http/AxiosHttp.ts.mustache"), MAIN_DESTINATION.append("http/AxiosHttp.ts"))
+        .add(COMMON_ESLINT.file(".eslintignore"), to(".eslintignore"))
         .batch(SOURCE.file("test/spec/http"), to("src/test/javascript/spec/http"))
           .addTemplate("AxiosHttp.spec.ts")
           .addTemplate("AxiosHttpStub.ts")
@@ -99,6 +116,12 @@ public class VueModulesFactory {
         .add(SOURCE.template("webapp/app/common/secondary/ConsoleLogger.ts"), MAIN_DESTINATION.append("common/secondary/ConsoleLogger.ts"))
         .add(SOURCE.template("test/spec/common/domain/Logger.fixture.ts"), to("src/test/javascript/spec/common/domain/Logger.fixture.ts"))
         .add(SOURCE.template("test/spec/common/secondary/ConsoleLogger.spec.ts"), to("src/test/javascript/spec/common/secondary/ConsoleLogger.spec.ts"))
+        .add(SOURCE.file("webapp/app/vue/VueProp.ts"), to("src/main/webapp/app/vue/VueProp.ts"))
+        .batch(TEST_SOURCE.append("vue/vue-prop"), TEST_DESTINATION.append("vue/vue-prop"))
+          .addFile("ArrayComponentVue.vue")
+          .addFile("ObjectComponentVue.vue")
+          .addFile("VueProp.spec.ts")
+          .and()
         .and()
       .build();
     //@formatter:on
@@ -116,26 +139,11 @@ public class VueModulesFactory {
         .and()
       .mandatoryReplacements()
         .in(path("src/main/webapp/app/main.ts"))
-          .add(lineBeforeText(IMPORT_NEEDLE), piniaImports())
-          .add(lineBeforeText(PROVIDER_NEEDLE), piniaProvider())
+          .add(lineBeforeText(IMPORT_NEEDLE), PINIA_IMPORTS)
+          .add(lineBeforeText(PROVIDER_NEEDLE), PINIA_PROVIDER)
           .and()
         .and()
       .build();
     //@formatter:on
-  }
-
-  private String piniaImports() {
-    return """
-        import { createPinia } from 'pinia';
-        import piniaPersist from 'pinia-plugin-persist';
-        """;
-  }
-
-  private String piniaProvider() {
-    return """
-        const pinia = createPinia();
-        pinia.use(piniaPersist);
-        app.use(pinia);
-        """;
   }
 }

@@ -29,6 +29,7 @@ public class MongoDbModuleFactory {
     Assert.notNull("properties", properties);
 
     String packagePath = properties.packagePath();
+    String packageName = properties.basePackage().get() + ".";
 
     //@formatter:off
     return moduleBuilder(properties)
@@ -53,14 +54,16 @@ public class MongoDbModuleFactory {
               toSrcTestJava().append(packagePath).append(MONGO_SECONDARY).append("JSR310DateConvertersTest.java")
             )
         .add(SOURCE.template("TestMongoDBManager.java"), toSrcTestJava().append(packagePath).append("TestMongoDBManager.java"))
-        .add(SOURCE.template("spring.factories"), to("src/test/resources/META-INF/spring.factories"))
         .and()
       .springMainProperties()
         .set(propertyKey("spring.data.mongodb.database"), propertyValue(properties.projectBaseName().get()))
-        .set(propertyKey("spring.data.mongodb.uri"), propertyValue("mongodb://localhost:27017"))
+        .set(propertyKey("spring.data.mongodb.uri"), propertyValue("mongodb://localhost:27017/" + properties.projectBaseName().get()))
         .and()
       .springTestProperties()
         .set(propertyKey("spring.data.mongodb.uri"), propertyValue("${TEST_MONGODB_URI}"))
+        .and()
+      .springTestFactories()
+        .append(propertyKey("org.springframework.context.ApplicationListener"), propertyValue(packageName + "TestMongoDBManager"))
         .and()
       .springMainLogger(REFLECTIONS_GROUP, LogLevel.WARN)
       .springMainLogger("org.mongodb.driver", LogLevel.WARN)

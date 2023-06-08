@@ -1,8 +1,9 @@
 import { ApplicationListener } from '@/common/primary/applicationlistener/ApplicationListener';
 import { Loader } from '@/loader/primary/Loader';
 import { ModulesRepository } from '@/module/domain/ModulesRepository';
-import { defineComponent, inject, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
+import { defineComponent, inject, nextTick, onBeforeUnmount, onMounted, Ref, ref } from 'vue';
 import { LandscapeModuleVue } from '../landscape-module';
+import { LandscapeLoaderVue } from '../landscape-loader';
 import { buildConnector, LandscapeConnector } from './LandscapeConnector';
 import { DisplayMode } from './DisplayMode';
 import { emptyLandscapeSize, LandscapeConnectorsSize } from './LandscapeConnectorsSize';
@@ -13,7 +14,6 @@ import { ProjectHistory } from '@/module/domain/ProjectHistory';
 import { ProjectFoldersRepository } from '@/module/domain/ProjectFoldersRepository';
 import { ProjectActionsVue } from '../project-actions';
 import { castValue, empty } from '../PropertyValue';
-import { ModuleParameterType } from '@/module/domain/ModuleParameters';
 import { ModuleParameter } from '@/module/domain/ModuleParameter';
 import { Landscape } from '@/module/domain/landscape/Landscape';
 import { IconVue } from '@/common/primary/icon';
@@ -25,48 +25,99 @@ import { LandscapeElement } from '@/module/domain/landscape/LandscapeElement';
 import { LandscapeFeature } from '@/module/domain/landscape/LandscapeFeature';
 import { LandscapeElementId } from '@/module/domain/landscape/LandscapeElementId';
 import { LandscapeFeatureSlug } from '@/module/domain/landscape/LandscapeFeatureSlug';
+import { BodyCursorUpdater } from '@/common/primary/cursor/BodyCursorUpdater';
+import { LandscapeScroller } from '@/module/primary/landscape/LandscapeScroller';
+import { ModuleParametersRepository } from '@/module/domain/ModuleParametersRepository';
 
 export default defineComponent({
   name: 'LandscapeVue',
-  components: { LandscapeModuleVue, ModulePropertiesFormVue, ProjectActionsVue, IconVue },
+  components: { LandscapeModuleVue, ModulePropertiesFormVue, ProjectActionsVue, IconVue, LandscapeLoaderVue },
   setup() {
+    const applicationListener = inject('applicationListener') as ApplicationListener;
     const alertBus = inject('alertBus') as AlertBus;
+    const cursorUpdater = inject('cursorUpdater') as BodyCursorUpdater;
+    const landscapeScroller = inject('landscapeScroller') as LandscapeScroller;
     const modules = inject('modules') as ModulesRepository;
     const projectFolders = inject('projectFolders') as ProjectFoldersRepository;
-    const applicationListener = inject('applicationListener') as ApplicationListener;
 
     const selectedMode = ref<DisplayMode>('COMPACTED');
 
     const landscape = ref(Loader.loading<Landscape>());
     const levels = ref(Loader.loading<LandscapeLevel[]>());
 
-    const landscapeContainer = ref<HTMLElement>();
+    const landscapeContainer = ref<HTMLElement>(document.createElement('div'));
     const landscapeConnectors = ref<LandscapeConnector[]>([]);
     const landscapeSize = ref<LandscapeConnectorsSize>(emptyLandscapeSize());
     const landscapeElements = ref(new Map<string, HTMLElement>());
 
     const emphasizedModule = ref<ModuleSlug>();
 
-    const folderPath = ref('');
-    const valuatedModuleParameters = ref(new Map<string, ModuleParameterType>());
+    const moduleParameters = inject('moduleParameters') as ModuleParametersRepository;
+    const folderPath = ref(moduleParameters.getCurrentFolderPath());
+    const moduleParametersValues = ref(moduleParameters.get(folderPath.value));
 
     let commitModule = true;
+
+    const isMoving: Ref<boolean> = ref(false);
+    const startX: Ref<number> = ref(0);
+    const startY: Ref<number> = ref(0);
+    const currentScrollX: Ref<number> = ref(0);
+    const currentScrollY: Ref<number> = ref(0);
 
     const operationInProgress = ref(false);
 
     onMounted(() => {
-      modules.landscape().then(response => loadLandscape(response));
-
-      projectFolders.get().then(projectFolder => (folderPath.value = projectFolder));
+      modules
+        .landscape()
+        .then(response => loadLandscape(response))
+        .catch(error => console.error(error));
+      loadProjectFolders();
     });
 
-    const loadLandscape = (response: Landscape): void => {
+    const loadProjectFolders = (): void => {
+      if (folderPath.value.length === 0) {
+        projectFolders
+          .get()
+          .then(projectFolder => {
+            folderPath.value = projectFolder;
+            moduleParametersValues.value = moduleParameters.get(folderPath.value);
+          })
+          .catch(error => console.error(error));
+      }
+    };
+
+    const startGrabbing = (mouseEvent: MouseEvent): void => {
+      if (mouseEvent.preventDefault) {
+        mouseEvent.preventDefault();
+      }
+      isMoving.value = true;
+      startX.value = mouseEvent.clientX;
+      startY.value = mouseEvent.clientY;
+      const rect = landscapeContainer.value;
+      currentScrollX.value = rect.scrollLeft;
+      currentScrollY.value = rect.scrollTop;
+      cursorUpdater.set('grabbing');
+    };
+
+    const stopGrabbing = (): void => {
+      isMoving.value = false;
+      cursorUpdater.reset();
+    };
+
+    const grabbing = (mouseEvent: MouseEvent): void => {
+      if (!isMoving.value) {
+        return;
+      }
+      const scrollX = currentScrollX.value + (startX.value - mouseEvent.clientX);
+      const scrollY = currentScrollY.value + (startY.value - mouseEvent.clientY);
+      landscapeScroller.scroll(landscapeContainer.value, scrollX, scrollY);
+    };
+
+    const loadLandscape = async (response: Landscape): Promise<void> => {
       landscape.value.loaded(response);
       levels.value.loaded(response.standaloneLevels());
 
-      nextTick(() => {
-        updateConnectors();
-      });
+      await nextTick().then(updateConnectors);
 
       applicationListener.addEventListener('resize', updateConnectors);
     };
@@ -113,6 +164,11 @@ export default defineComponent({
       return element instanceof LandscapeFeature;
     };
 
+    const landscapeClass = (): string => {
+      const hasEmphasizedModule = emphasizedModule.value !== undefined;
+      return `jhipster-landscape-map jhlite-menu-content-template--content${hasEmphasizedModule ? ' has-emphasized-module' : ''}`;
+    };
+
     const modeSwitchClass = (mode: DisplayMode): string => {
       if (selectedMode.value === mode) {
         return '-selected';
@@ -121,12 +177,10 @@ export default defineComponent({
       return '-not-selected';
     };
 
-    const selectMode = (mode: DisplayMode): void => {
+    const selectMode = async (mode: DisplayMode): Promise<void> => {
       selectedMode.value = mode;
 
-      nextTick(() => {
-        updateConnectors();
-      });
+      await nextTick().then(updateConnectors);
     };
 
     const elementFlavor = (module: LandscapeElementId): string => {
@@ -279,7 +333,7 @@ export default defineComponent({
 
     const missingMandatoryProperty = () => {
       return selectedModulesProperties().some(
-        property => property.mandatory && empty(valuatedModuleParameters.value.get(property.key)) && empty(property.defaultValue)
+        property => property.mandatory && empty(moduleParametersValues.value.get(property.key)) && empty(property.defaultValue)
       );
     };
 
@@ -293,6 +347,7 @@ export default defineComponent({
 
     const updateFolderPath = (path: string): void => {
       folderPath.value = path;
+      moduleParametersValues.value = moduleParameters.get(folderPath.value);
     };
 
     const projectFolderUpdated = (): void => {
@@ -309,21 +364,24 @@ export default defineComponent({
 
       projectHistory.properties.forEach(property => {
         if (unknownProperty(property.key)) {
-          valuatedModuleParameters.value.set(property.key, property.value);
+          moduleParametersValues.value.set(property.key, property.value);
         }
       });
+      moduleParameters.store(folderPath.value, moduleParametersValues.value);
     };
 
     const unknownProperty = (key: string) => {
-      return !valuatedModuleParameters.value.has(key);
+      return !moduleParametersValues.value.has(key);
     };
 
     const updateProperty = (property: ModuleParameter): void => {
-      valuatedModuleParameters.value.set(property.key, property.value);
+      moduleParametersValues.value.set(property.key, property.value);
+      moduleParameters.store(folderPath.value, moduleParametersValues.value);
     };
 
     const deleteProperty = (key: string): void => {
-      valuatedModuleParameters.value.delete(key);
+      moduleParametersValues.value.delete(key);
+      moduleParameters.store(folderPath.value, moduleParametersValues.value);
     };
 
     const applyNewModules = (): void => {
@@ -348,7 +406,7 @@ export default defineComponent({
           modules: modulesToApply,
           projectFolder: folderPath.value,
           commit: commitModule,
-          parameters: valuatedModuleParameters.value,
+          parameters: moduleParametersValues.value,
         })
         .then(() => {
           operationEnded();
@@ -386,6 +444,7 @@ export default defineComponent({
       landscapeSize,
       landscapeElements,
       landscapeContainer,
+      landscapeClass,
       modeSwitchClass,
       selectMode,
       modeClass,
@@ -399,7 +458,7 @@ export default defineComponent({
       selectedModulesCount,
       folderPath,
       selectedModulesProperties,
-      valuatedModuleParameters,
+      moduleParametersValues,
       updateModuleCommit,
       updateFolderPath,
       projectFolderUpdated,
@@ -410,6 +469,11 @@ export default defineComponent({
       operationStarted,
       operationEnded,
       isApplied,
+      currentScrollX,
+      currentScrollY,
+      startGrabbing,
+      stopGrabbing,
+      grabbing,
     };
   },
 });

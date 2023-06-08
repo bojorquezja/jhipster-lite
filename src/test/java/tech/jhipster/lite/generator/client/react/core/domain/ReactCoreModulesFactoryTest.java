@@ -27,12 +27,16 @@ class ReactCoreModulesFactoryTest {
       .containing(nodeDependency("@types/react"))
       .containing(nodeDependency("@types/react-dom"))
       .containing(nodeDependency("@types/ws"))
+      .containing(nodeDependency("@typescript-eslint/eslint-plugin"))
       .containing(nodeDependency("@vitejs/plugin-react"))
       .containing(nodeDependency("@vitest/coverage-istanbul"))
+      .containing(nodeDependency("eslint"))
+      .containing(nodeDependency("eslint-plugin-react"))
       .containing(nodeDependency("jsdom"))
       .containing(nodeDependency("typescript"))
       .containing(nodeDependency("ts-node"))
       .containing(nodeDependency("vite"))
+      .containing(nodeDependency("vite-tsconfig-paths"))
       .containing(nodeDependency("vitest"))
       .containing(nodeDependency("vitest-sonar-reporter"))
       .containing(nodeDependency("react"))
@@ -41,9 +45,9 @@ class ReactCoreModulesFactoryTest {
       .containing(nodeScript("build", "tsc && vite build --emptyOutDir"))
       .containing(nodeScript("preview", "vite preview"))
       .containing(nodeScript("start", "vite"))
+      .containing(nodeScript("lint", "eslint --ext .js,.ts,.tsx src/main/webapp/app/**/*"))
       .containing(nodeScript("test", "vitest run --coverage"))
       .containing(nodeScript("test:watch", "vitest --"))
-      .containing("  \"jestSonar\": {\n    \"reportPath\": \"target/test-results\",\n    \"reportFile\": \"TESTS-results-sonar.xml\"\n  },")
       .and()
       .hasFile(".lintstagedrc.js")
       .containing(
@@ -55,7 +59,7 @@ class ReactCoreModulesFactoryTest {
             """
       )
       .and()
-      .hasFiles("tsconfig.json", "vite.config.ts", "vitest.config.ts")
+      .hasFiles("tsconfig.json", "vite.config.ts", "vitest.config.ts", ".eslintignore", ".eslintrc.js")
       .hasFiles("src/main/webapp/index.html")
       .hasPrefixedFiles("src/main/webapp/app", "index.css", "index.tsx", "vite-env.d.ts")
       .hasFiles("src/test/javascript/spec/common/primary/app/App.spec.tsx")
@@ -63,7 +67,7 @@ class ReactCoreModulesFactoryTest {
       .containing("import './App.css';")
       .and()
       .hasFiles("src/main/webapp/app/common/primary/app/App.css")
-      .hasPrefixedFiles("src/main/webapp/content/images", "ReactLogo.png", "JHipster-Lite-neon-blue.png");
+      .hasPrefixedFiles("src/main/webapp/assets", "ReactLogo.png", "JHipster-Lite-neon-blue.png");
   }
 
   private String nodeScript(String key, String value) {

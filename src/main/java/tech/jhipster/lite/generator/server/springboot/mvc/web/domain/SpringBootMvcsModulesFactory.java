@@ -16,6 +16,8 @@ import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
 public class SpringBootMvcsModulesFactory {
 
   private static final JHipsterSource SOURCE = from("server/springboot/mvc/web");
+  private static final JHipsterSource MAIN_SOURCE = SOURCE.append("main");
+  private static final JHipsterSource TEST_SOURCE = SOURCE.append("test");
 
   private static final GroupId SPRING_BOOT_GROUP = groupId("org.springframework.boot");
   private static final ArtifactId STARTER_WEB_ARTIFACT_ID = artifactId("spring-boot-starter-web");
@@ -23,6 +25,10 @@ public class SpringBootMvcsModulesFactory {
   private static final PropertyKey SERVER_PORT = propertyKey("server.port");
 
   private static final String CORS_PRIMARY = "security/infrastructure/primary";
+
+  public JHipsterModule buildEmptyModule(JHipsterModuleProperties properties) {
+    return moduleBuilder(properties).build();
+  }
 
   public JHipsterModule buildTomcatModule(JHipsterModuleProperties properties) {
     Assert.notNull("properties", properties);
@@ -76,19 +82,28 @@ public class SpringBootMvcsModulesFactory {
         .and()
       .files()
         .add(SOURCE.file("resources/404.html"), to("src/main/resources/public/error/404.html"))
-        .batch(SOURCE.append("src/cors"), toSrcMainJava().append(packagePath).append(CORS_PRIMARY))
+        .batch(MAIN_SOURCE.append("cors"), toSrcMainJava().append(packagePath).append(CORS_PRIMARY))
           .addTemplate("CorsFilterConfiguration.java")
           .addTemplate("CorsProperties.java")
           .and()
         .add(
-          SOURCE.append("test/cors").template("CorsFilterConfigurationIT.java"),
+          TEST_SOURCE.append("cors").template("CorsFilterConfigurationIT.java"),
           toSrcTestJava().append(packagePath).append(CORS_PRIMARY).append("CorsFilterConfigurationIT.java")
         )
-        .add(SOURCE.append("test").template("JsonHelper.java"), toSrcTestJava().append(packagePath).append("JsonHelper.java"))
-        .batch(SOURCE.append("test"), toSrcTestJava().append(properties.packagePath()))
+        .add(TEST_SOURCE.template("JsonHelper.java"), toSrcTestJava().append(packagePath).append("JsonHelper.java"))
+        .batch(TEST_SOURCE, toSrcTestJava().append(properties.packagePath()))
           .addTemplate("BeanValidationAssertions.java")
           .addTemplate("BeanValidationTest.java")
         .and()
+        .add(MAIN_SOURCE.template("BeanValidationErrorsHandler.java"), toSrcMainJava().append(packagePath).append("error/infrastructure/primary/BeanValidationErrorsHandler.java"))
+        .batch(TEST_SOURCE, toSrcTestJava().append(packagePath).append("error/infrastructure/primary"))
+          .addTemplate("BeanValidationErrorsHandlerIntTest.java")
+          .addTemplate("BeanValidationErrorsHandlerTest.java")
+          .and()
+        .batch(TEST_SOURCE, toSrcTestJava().append(packagePath).append("error_generator/infrastructure/primary"))
+          .addTemplate("BeanValidationErrorsResource.java")
+          .addTemplate("RestMandatoryParameter.java")
+          .and()
       .and()
       .springTestLogger(loggerName, logLevel)
       .springMainLogger(loggerName, logLevel);

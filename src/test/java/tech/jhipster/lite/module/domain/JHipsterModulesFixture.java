@@ -43,11 +43,11 @@ public final class JHipsterModulesFixture {
     .files()
       .add(from("init/gitignore"), to(".gitignore"))
       .addExecutable(from("prettier/.husky/pre-commit"), to(".husky/pre-commit"))
-      .batch(from("server/javatool/base"), to("src/main/java/com/company/myapp/errors"))
+      .batch(from("server/javatool/base/main"), to("src/main/java/com/company/myapp/errors"))
         .addTemplate("Assert.java.mustache")
         .addTemplate("AssertionException.java.mustache")
         .and()
-        .add(from("server/springboot/core/MainApp.java.mustache"), to("src/main/java/com/company/myapp/MyApp.java"))
+        .add(from("server/springboot/core/main/MainApp.java.mustache"), to("src/main/java/com/company/myapp/MyApp.java"))
       .add(from("init/README.md.mustache"), to("README.md"))
       .move(path("dummy.txt"), to("dummy.json"))
       .and()
@@ -76,8 +76,7 @@ public final class JHipsterModulesFixture {
       .setVersion(javaDependencyVersion("dummy-dependency", "4.5.8"))
       .removeDependency(dependencyId("net.logstash.logback", "logstash-logback-encoder"))
       .addDependency(groupId("org.springframework.boot"), artifactId("spring-boot-starter"))
-      .addDependency(groupId("org.zalando"), artifactId("problem-spring-web"), versionSlug("problem-spring"))
-      .addDependency(groupId("io.jsonwebtoken"), artifactId("jjwt-api"), versionSlug("jjwt.version"))
+      .addDependency(groupId("io.jsonwebtoken"), artifactId("jjwt-api"), versionSlug("json-web-token.version"))
       .addDependency(optionalTestDependency())
       .addDependency(springBootStarterWebDependency())
       .addDependencyManagement(springBootDependencyManagement())
@@ -101,17 +100,30 @@ public final class JHipsterModulesFixture {
       .add(context -> log.debug("Applied on {}", context.projectFolder().get()))
       .and()
     .springMainProperties()
+      .comment(propertyKey("springdoc.swagger-ui.operationsSorter"), comment("This is a comment"))
       .set(propertyKey("springdoc.swagger-ui.operationsSorter"), propertyValue("alpha"))
       .and()
     .springMainProperties(springProfile("local"))
+      .comment(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), comment("This is a comment"))
       .set(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), propertyValue("false"))
       .and()
     .springTestProperties()
+      .comment(propertyKey("springdoc.swagger-ui.operationsSorter"), comment("This is a comment"))
       .set(propertyKey("springdoc.swagger-ui.operationsSorter"), propertyValue("test"))
       .and()
     .springTestProperties(springProfile("local"))
+      .comment(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), comment("This is a comment"))
       .set(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), propertyValue("test"))
+      .set(properties("Swagger properties")
+        .add(propertyKey("springdoc.swagger-ui.operationsSorter"), propertyValue("test"))
+        .add(propertyKey("springdoc.swagger-ui.tagsSorter"), propertyValue("test"))
+        .add(propertyKey("springdoc.swagger-ui.tryItOutEnabled"), propertyValue("test"))
+        .build())
       .and()
+    .springTestFactories()
+     .append(propertyKey("o.s.c.ApplicationListener"), propertyValue("c.m.m.MyListener1"))
+     .append(propertyKey("o.s.c.ApplicationListener"), propertyValue("c.m.m.MyListener2"))
+     .and()
     .build();
     // @formatter:on
   }
@@ -152,7 +164,7 @@ public final class JHipsterModulesFixture {
   }
 
   public static JavaDependency dependencyWithVersion() {
-    return javaDependency().groupId("org.zalando").artifactId("problem-spring-web").versionSlug("problem-spring").build();
+    return javaDependency().groupId("io.jsonwebtoken").artifactId("jjwt-api").versionSlug("json-web-token").build();
   }
 
   public static JavaBuildCommands javaDependenciesCommands() {

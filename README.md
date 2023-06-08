@@ -33,6 +33,7 @@
 
 - [What is JHipster Lite and why should you care?][devoxx-jhlite] by [Julien Dubois][jdubois]
 - [Simple WebServices with JHipster Lite][webservices-with-jhlite] by [Colin Damon][cdamon]
+- [JHipster vs JHipster Lite][jhipster-vs-jhlite] by [Julien Dubois][jdubois]
 
 ## Choosing
 
@@ -64,6 +65,28 @@ You will only need to run this command when dependencies change in [package.json
 npm install
 ```
 
+## Quick Start
+
+You need to clone this project:
+
+```
+git clone https://github.com/jhipster/jhipster-lite
+```
+
+Go into the folder:
+
+```
+cd jhipster-lite
+```
+
+Run the project:
+
+```
+./mvnw
+```
+
+Then, you can navigate to http://localhost:7471 in your browser.
+
 ## Test the project
 
 To launch tests:
@@ -76,6 +99,53 @@ To launch tests and integration tests:
 
 ```
 ./mvnw clean verify
+```
+
+## GraalVM Native Support
+
+This project has been configured to let you generate either a lightweight container or a native executable. It is also possible to run your tests in a native image.
+Lightweight Container with Cloud Native Buildpacks
+
+If you're already familiar with Spring Boot container images support, this is the easiest way to get started.
+Docker should be installed and configured on your machine prior to creating the image.
+
+To create the image, run the following goal:
+
+```
+./mvnw spring-boot:build-image -Pnative
+```
+
+Then, you can run the app like any other container:
+
+```
+docker run -p 7471:7471 --rm docker.io/library/jhlite:<VERSION>
+```
+
+## Executable with Native Build Tools
+
+Use this option if you want to explore more options such as running your tests in a native image.
+The GraalVM native-image compiler should be installed and configured on your machine.
+
+NOTE: GraalVM 22.3+ is required.
+
+To create the executable, run the following goal:
+
+```
+./mvnw native:compile -Pnative -DskipTests
+```
+
+Then, you can run the app as follows:
+
+```
+./target/jhlite
+```
+
+You can also run your existing tests suite in a native image. This is an efficient way to validate the compatibility of your application.
+
+To run your existing tests in a native image, run the following goal:
+
+```
+./mvnw test -PnativeTest
 ```
 
 ## Lint
@@ -203,11 +273,6 @@ Support this project by becoming a sponsor! [Become a sponsor](https://opencolle
   <tbody>
     <tr>
       <td align="center" valign="middle">
-        <a href="http://www.octoconsulting.com/" target="_blank">
-          <img width="200em" src="https://www.jhipster.tech/images/open-collective/octoconsulting.png">
-        </a>
-      </td>
-      <td align="center" valign="middle">
         <a href="https://dev.entando.org/jhipster" target="_blank">
           <img width="200em" src="https://www.jhipster.tech/images/open-collective/entandoe.png">
         </a>
@@ -259,4 +324,5 @@ Support this project by becoming a sponsor! [Become a sponsor](https://opencolle
 [devoxx-jhlite]: https://youtu.be/RnLGnY-vzLI
 [jdubois]: https://twitter.com/juliendubois
 [webservices-with-jhlite]: https://youtu.be/mEECPRZjajI
+[jhipster-vs-jhlite]: https://youtu.be/t5GA329FMfU
 [cdamon]: https://www.linkedin.com/in/colin-damon/

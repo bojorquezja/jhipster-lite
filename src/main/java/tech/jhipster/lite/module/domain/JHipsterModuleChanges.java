@@ -5,13 +5,17 @@ import tech.jhipster.lite.module.domain.file.JHipsterFilesToDelete;
 import tech.jhipster.lite.module.domain.file.JHipsterFilesToMove;
 import tech.jhipster.lite.module.domain.file.JHipsterTemplatedFiles;
 import tech.jhipster.lite.module.domain.javabuild.command.JavaBuildCommands;
+import tech.jhipster.lite.module.domain.javaproperties.SpringComments;
+import tech.jhipster.lite.module.domain.javaproperties.SpringFactories;
 import tech.jhipster.lite.module.domain.javaproperties.SpringProperties;
+import tech.jhipster.lite.module.domain.javaproperties.SpringPropertiesBlockComments;
 import tech.jhipster.lite.module.domain.packagejson.JHipsterModulePackageJson;
 import tech.jhipster.lite.module.domain.postaction.JHipsterModulePostActions;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
 import tech.jhipster.lite.module.domain.replacement.JHipsterModuleMandatoryReplacements;
 import tech.jhipster.lite.module.domain.replacement.JHipsterModuleOptionalReplacements;
 
+@SuppressWarnings("java:S6539")
 public class JHipsterModuleChanges {
 
   private final JHipsterProjectFolder projectFolder;
@@ -26,6 +30,9 @@ public class JHipsterModuleChanges {
   private final JHipsterModulePreActions preActions;
   private final JHipsterModulePostActions postActions;
   private final SpringProperties springProperties;
+  private final SpringComments springComments;
+  private final SpringPropertiesBlockComments springPropertiesBlockComments;
+  private final SpringFactories springFactories;
 
   private JHipsterModuleChanges(JHipsterModuleChangesBuilder builder) {
     assertMandatoryFields(builder);
@@ -42,6 +49,9 @@ public class JHipsterModuleChanges {
     preActions = builder.preActions;
     postActions = builder.postActions;
     springProperties = builder.springProperties;
+    springComments = builder.springComments;
+    springPropertiesBlockComments = builder.springPropertiesBlockComments;
+    springFactories = builder.springFactories;
   }
 
   private void assertMandatoryFields(JHipsterModuleChangesBuilder builder) {
@@ -56,6 +66,7 @@ public class JHipsterModuleChanges {
     Assert.notNull("preActions", builder.preActions);
     Assert.notNull("postActions", builder.postActions);
     Assert.notNull("springProperties", builder.springProperties);
+    Assert.notNull("springFactories", builder.springFactories);
   }
 
   public static JHipsterModuleChangesProjectFolderBuilder builder() {
@@ -110,6 +121,18 @@ public class JHipsterModuleChanges {
     return springProperties;
   }
 
+  public SpringComments springComments() {
+    return springComments;
+  }
+
+  public SpringPropertiesBlockComments springPropertiesBlockComments() {
+    return springPropertiesBlockComments;
+  }
+
+  public SpringFactories springFactories() {
+    return springFactories;
+  }
+
   public static class JHipsterModuleChangesBuilder
     implements
       JHipsterModuleChangesProjectFolderBuilder,
@@ -123,7 +146,10 @@ public class JHipsterModuleChanges {
       JHipsterModuleChangesPackageJsonBuilder,
       JHipsterModuleChangesPreActionsBuilder,
       JHipsterModuleChangesPostActionsBuilder,
-      JHipsterModuleChangesSpringPropertiesBuilder {
+      JHipsterModuleChangesSpringPropertiesBuilder,
+      JHipsterModuleChangesSpringCommentsBuilder,
+      JHipsterModuleChangesSpringPropertiesBlockCommentsBuilder,
+      JHipsterModuleChangesSpringFactoriesBuilder {
 
     private JHipsterProjectFolder projectFolder;
     private JHipsterTemplatedFiles filesToAdd;
@@ -137,6 +163,9 @@ public class JHipsterModuleChanges {
     private JHipsterModulePreActions preActions;
     private JHipsterModulePostActions postActions;
     private SpringProperties springProperties;
+    private SpringComments springComments;
+    private SpringPropertiesBlockComments springPropertiesBlockComments;
+    private SpringFactories springFactories;
 
     private JHipsterModuleChangesBuilder() {}
 
@@ -220,8 +249,31 @@ public class JHipsterModuleChanges {
     }
 
     @Override
-    public JHipsterModuleChanges springProperties(SpringProperties springProperties) {
+    public JHipsterModuleChangesSpringCommentsBuilder springProperties(SpringProperties springProperties) {
       this.springProperties = springProperties;
+
+      return this;
+    }
+
+    @Override
+    public JHipsterModuleChangesSpringPropertiesBlockCommentsBuilder springComments(SpringComments springComments) {
+      this.springComments = springComments;
+
+      return this;
+    }
+
+    @Override
+    public JHipsterModuleChangesSpringFactoriesBuilder springPropertiesBlockComments(
+      SpringPropertiesBlockComments springPropertiesBlockComments
+    ) {
+      this.springPropertiesBlockComments = springPropertiesBlockComments;
+
+      return this;
+    }
+
+    @Override
+    public JHipsterModuleChanges springFactories(SpringFactories springFactories) {
+      this.springFactories = springFactories;
 
       return new JHipsterModuleChanges(this);
     }
@@ -272,6 +324,18 @@ public class JHipsterModuleChanges {
   }
 
   public interface JHipsterModuleChangesSpringPropertiesBuilder {
-    JHipsterModuleChanges springProperties(SpringProperties springProperties);
+    JHipsterModuleChangesSpringCommentsBuilder springProperties(SpringProperties springProperties);
+  }
+
+  public interface JHipsterModuleChangesSpringCommentsBuilder {
+    JHipsterModuleChangesSpringPropertiesBlockCommentsBuilder springComments(SpringComments springComments);
+  }
+
+  public interface JHipsterModuleChangesSpringPropertiesBlockCommentsBuilder {
+    JHipsterModuleChangesSpringFactoriesBuilder springPropertiesBlockComments(SpringPropertiesBlockComments springPropertiesBlockComments);
+  }
+
+  public interface JHipsterModuleChangesSpringFactoriesBuilder {
+    JHipsterModuleChanges springFactories(SpringFactories springFactories);
   }
 }

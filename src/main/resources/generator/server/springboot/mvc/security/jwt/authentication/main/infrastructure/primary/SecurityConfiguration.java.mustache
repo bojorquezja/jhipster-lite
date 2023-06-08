@@ -8,12 +8,14 @@ import javax.crypto.SecretKey;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,20 +24,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.filter.CorsFilter;
 
+@Configuration
 @EnableWebSecurity
-@Import(SecurityProblemSupport.class)
 @EnableConfigurationProperties(JwtAuthenticationProperties.class)
-@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
 class SecurityConfiguration {
 
   private final JwtAuthenticationProperties properties;
   private final CorsFilter corsFilter;
-  private final SecurityProblemSupport problemSupport;
 
-  public SecurityConfiguration(JwtAuthenticationProperties properties, CorsFilter corsFilter, SecurityProblemSupport problemSupport) {
+  public SecurityConfiguration(JwtAuthenticationProperties properties, CorsFilter corsFilter) {
     this.properties = properties;
     this.corsFilter = corsFilter;
-    this.problemSupport = problemSupport;
   }
 
   @Bean
@@ -48,58 +48,51 @@ class SecurityConfiguration {
     return web ->
       web
         .ignoring()
-        .antMatchers(HttpMethod.OPTIONS, "/**")
-        .antMatchers("/app/**/*.{js,html}")
-        .antMatchers("/i18n/**")
-        .antMatchers("/content/**")
-        .antMatchers("/h2-console/**")
-        .antMatchers("/swagger-ui/**")
-        .antMatchers("/test/**");
+        .requestMatchers(HttpMethod.OPTIONS, "/**")
+        .requestMatchers("/app/**")
+        .requestMatchers("/i18n/**")
+        .requestMatchers("/content/**")
+        .requestMatchers("/swagger-ui/**")
+        .requestMatchers("/swagger-ui.html")
+        .requestMatchers("/v3/api-docs/**")
+        .requestMatchers("/test/**");
   }
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     // @formatter:off
-    return http
-        .csrf()
-        .disable()
-        .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-        .exceptionHandling()
-        .authenticationEntryPoint(problemSupport)
-        .accessDeniedHandler(problemSupport)
-        .and()
-      .headers()
-        .contentSecurityPolicy(properties.getContentSecurityPolicy())
-          .and()
-        .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
-          .and()
-        .permissionsPolicy().policy("camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()")
-          .and()
-        .frameOptions()
-          .deny()
-          .and()
-        .sessionManagement()
-          .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-          .and()
-      .authorizeRequests()
-        .antMatchers("/api/authenticate").permitAll()
-        .antMatchers("/api/register").permitAll()
-        .antMatchers("/api/activate").permitAll()
-        .antMatchers("/api/account/reset-password/init").permitAll()
-        .antMatchers("/api/account/reset-password/finish").permitAll()
-        .antMatchers("/api/admin/**").hasAuthority(Role.ADMIN.key())
-        .antMatchers("/api/**").authenticated()
-        .antMatchers("/management/health").permitAll()
-        .antMatchers("/management/health/**").permitAll()
-        .antMatchers("/management/info").permitAll()
-        .antMatchers("/management/prometheus").permitAll()
-        .antMatchers("/management/**").hasAuthority(Role.ADMIN.key())
-        .and()
-      .httpBasic()
-        .and()
-        .apply(new JWTConfigurer(authenticationTokenReader()))
-        .and()
-      .build();
+    http
+      .csrf(csrf -> csrf.disable())
+      .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+      .headers(headers -> headers
+        .contentSecurityPolicy(csp -> csp.policyDirectives(properties.getContentSecurityPolicy()))
+        .frameOptions(FrameOptionsConfig::deny)
+        .referrerPolicy(referrer -> referrer.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+        .permissionsPolicy(permissions ->
+          permissions.policy("camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()"))
+      )
+      .formLogin(AbstractHttpConfigurer::disable)
+      .httpBasic(AbstractHttpConfigurer::disable)
+      .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+      .authorizeHttpRequests(authz -> authz
+        .requestMatchers("/api/authenticate").permitAll()
+        .requestMatchers("/api/register").permitAll()
+        .requestMatchers("/api/activate").permitAll()
+        .requestMatchers("/api/account/reset-password/init").permitAll()
+        .requestMatchers("/api/account/reset-password/finish").permitAll()
+        .requestMatchers("/api/admin/**").hasAuthority(Role.ADMIN.key())
+        .requestMatchers("/api/**").authenticated()
+        .requestMatchers("/management/health").permitAll()
+        .requestMatchers("/management/health/**").permitAll()
+        .requestMatchers("/management/info").permitAll()
+        .requestMatchers("/management/prometheus").permitAll()
+        .requestMatchers("/management/**").hasAuthority(Role.ADMIN.key())
+        .anyRequest().authenticated()
+      );
+
+      JWTConfigurer jwtConfigurer = new JWTConfigurer(authenticationTokenReader());
+      http.apply(jwtConfigurer);
+      return http.build();
     // @formatter:on
   }
 

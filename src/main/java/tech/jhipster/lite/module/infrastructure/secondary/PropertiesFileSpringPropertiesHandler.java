@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Collectors;
-import tech.jhipster.lite.common.domain.Generated;
+import tech.jhipster.lite.common.domain.ExcludeFromGeneratedCodeCoverage;
 import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.error.domain.GeneratorException;
 import tech.jhipster.lite.module.domain.javaproperties.PropertyKey;
@@ -33,14 +33,14 @@ class PropertiesFileSpringPropertiesHandler {
     updateProperties(key, value);
   }
 
-  @Generated
+  @ExcludeFromGeneratedCodeCoverage(reason = "Hard to cover IOException")
   private void updateProperties(PropertyKey key, PropertyValue value) {
     try {
       String properties = buildProperties(key, value);
 
       Files.write(file, properties.getBytes(StandardCharsets.UTF_8));
     } catch (IOException e) {
-      throw new GeneratorException("Error updating properties: " + e.getMessage(), e);
+      throw GeneratorException.technicalError("Error updating properties: " + e.getMessage(), e);
     }
   }
 

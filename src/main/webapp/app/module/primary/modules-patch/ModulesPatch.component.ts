@@ -13,14 +13,15 @@ import { ModulePropertyDefinition } from '@/module/domain/ModulePropertyDefiniti
 import { ModulePropertiesFormVue } from '../module-properties-form';
 import { ModulePropertyKey } from '@/module/domain/ModulePropertyKey';
 import { ProjectActionsVue } from '../project-actions';
-import { ModuleParameterType } from '@/module/domain/ModuleParameters';
 import { ModuleParameter } from '@/module/domain/ModuleParameter';
 import { ModuleParametersVue } from '../module-parameters';
 import { castValue } from '../PropertyValue';
+import { ModuleParametersRepository } from '@/module/domain/ModuleParametersRepository';
+import { ModulesPatchLoaderVue } from '../modules-patch-loader';
 
 export default defineComponent({
   name: 'ModulesPatchVue',
-  components: { ModuleParametersVue, IconVue, TagFilterVue, ModulePropertiesFormVue, ProjectActionsVue },
+  components: { ModuleParametersVue, IconVue, TagFilterVue, ModulePropertiesFormVue, ProjectActionsVue, ModulesPatchLoaderVue },
   setup() {
     const alertBus = inject('alertBus') as AlertBus;
     const modules = inject('modules') as ModulesRepository;
@@ -33,20 +34,36 @@ export default defineComponent({
 
     const selectedTag = ref(undefined as string | undefined);
     const operationInProgress = ref(false);
-    const folderPath = ref('');
     const selectedModule = ref<ComponentModule>();
-    const moduleParameters = ref(new Map<string, ModuleParameterType>());
+    const moduleParameters = inject('moduleParameters') as ModuleParametersRepository;
+    const folderPath = ref(moduleParameters.getCurrentFolderPath());
+    const moduleParametersValues = ref(moduleParameters.get(folderPath.value));
     const commitModule = ref(true);
     const appliedModules = ref([] as string[]);
     let searchedText = '';
 
     onMounted(() => {
-      modules.list().then(response => {
-        applicationModules.all.loaded(ComponentModules.fromModules(response));
-        applicationModules.displayed.loaded(ComponentModules.fromModules(response));
-      });
-      projectFolders.get().then(projectFolder => (folderPath.value = projectFolder));
+      modules
+        .list()
+        .then(response => {
+          applicationModules.all.loaded(ComponentModules.fromModules(response));
+          applicationModules.displayed.loaded(ComponentModules.fromModules(response));
+        })
+        .catch(error => console.error(error));
+      loadProjectFolders();
     });
+
+    const loadProjectFolders = (): void => {
+      if (folderPath.value.length === 0) {
+        projectFolders
+          .get()
+          .then(projectFolder => {
+            folderPath.value = projectFolder;
+            moduleParametersValues.value = moduleParameters.get(folderPath.value);
+          })
+          .catch(error => console.error(error));
+      }
+    };
 
     const operationStarted = (): void => {
       operationInProgress.value = true;
@@ -99,7 +116,7 @@ export default defineComponent({
     };
 
     const isNotSet = (propertyKey: string): boolean => {
-      const value = moduleParameters.value.get(propertyKey);
+      const value = moduleParametersValues.value.get(propertyKey);
 
       if (typeof value === 'string') {
         return empty(value);
@@ -124,14 +141,17 @@ export default defineComponent({
 
     const updateFolderPath = (path: string): void => {
       folderPath.value = path;
+      moduleParametersValues.value = moduleParameters.get(folderPath.value);
     };
 
     const updateProperty = (property: ModuleParameter): void => {
-      moduleParameters.value.set(property.key, property.value);
+      moduleParametersValues.value.set(property.key, property.value);
+      moduleParameters.store(folderPath.value, moduleParametersValues.value);
     };
 
     const deleteProperty = (key: ModulePropertyKey): void => {
-      moduleParameters.value.delete(key);
+      moduleParametersValues.value.delete(key);
+      moduleParameters.store(folderPath.value, moduleParametersValues.value);
     };
 
     const mandatoryProperties = (module: string): ModulePropertyDefinition[] => {
@@ -216,7 +236,7 @@ export default defineComponent({
         .apply(new ModuleSlug(module), {
           projectFolder: folderPath.value,
           commit: commitModule.value,
-          parameters: moduleParameters.value,
+          parameters: moduleParametersValues.value,
         })
         .then(() => {
           operationInProgress.value = false;
@@ -243,13 +263,14 @@ export default defineComponent({
 
       projectHistory.properties.forEach(property => {
         if (unknownProperty(property.key)) {
-          moduleParameters.value.set(property.key, property.value);
+          moduleParametersValues.value.set(property.key, property.value);
         }
       });
+      moduleParameters.store(folderPath.value, moduleParametersValues.value);
     };
 
     const unknownProperty = (key: string) => {
-      return !moduleParameters.value.has(key);
+      return !moduleParametersValues.value.has(key);
     };
 
     const appliedModule = (slug: string): boolean => {
@@ -265,7 +286,7 @@ export default defineComponent({
       disabledApplication,
       mandatoryProperties,
       optionalProperties,
-      moduleParameters,
+      moduleParametersValues,
       displayedModulesCount,
       totalModulesCount,
       isTagSelected,

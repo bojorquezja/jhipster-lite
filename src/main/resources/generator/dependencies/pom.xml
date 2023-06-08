@@ -13,45 +13,69 @@
   <packaging>pom</packaging>
 
   <properties>
-    <jjwt.version>0.11.5</jjwt.version>
-    <logstash-logback-encoder.version>7.2</logstash-logback-encoder.version>
-    <problem-spring.version>0.27.0</problem-spring.version>
-    <spring-boot.version>2.7.5</spring-boot.version>
-    <spring-cloud.version>2021.0.0</spring-cloud.version>
-    <spring-cloud-netflix-eureka-client.version>3.1.4</spring-cloud-netflix-eureka-client.version>
-    <springdoc-openapi.version>1.6.12</springdoc-openapi.version>
-    <testcontainers.version>1.17.3</testcontainers.version>
+    <junit-jupiter.version>5.9.3</junit-jupiter.version>
+    <assertj.version>3.24.2</assertj.version>
+    <mockito.version>5.3.1</mockito.version>
+    <logstash-logback-encoder.version>7.3</logstash-logback-encoder.version>
+    <spring-boot.version>3.1.0</spring-boot.version>
+    <spring-cloud.version>2022.0.0</spring-cloud.version>
+    <spring-cloud-netflix-eureka-client.version>4.0.2</spring-cloud-netflix-eureka-client.version>
+    <springdoc-openapi-starter-webmvc.version>2.1.0</springdoc-openapi-starter-webmvc.version>
+    <springdoc-openapi-starter-webflux.version>2.1.0</springdoc-openapi-starter-webflux.version>
+    <testcontainers.version>1.17.6</testcontainers.version>
     <kafka-clients.version>3.2.0</kafka-clients.version>
     <frontend-maven-plugin.version>1.12.1</frontend-maven-plugin.version>
     <checksum-maven-plugin.version>1.11</checksum-maven-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <properties-maven-plugin.version>1.1.0</properties-maven-plugin.version>
     <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
-    <maven-enforcer-plugin.version>3.1.0</maven-enforcer-plugin.version>
-    <jib-maven-plugin.version>3.3.1</jib-maven-plugin.version>
-    <mongock.version>5.0.41</mongock.version>
+    <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
+    <jib-maven-plugin.version>3.3.2</jib-maven-plugin.version>
+    <mongock.version>5.2.2</mongock.version>
     <neo4j-migrations.version>1.13.0</neo4j-migrations.version>
-    <archunit-junit5.version>1.0.0</archunit-junit5.version>
-    <cucumber.version>7.9.0</cucumber.version>
-    <testng.version>7.6.1</testng.version>
+    <archunit-junit5.version>1.0.1</archunit-junit5.version>
+    <cucumber.version>7.12.1</cucumber.version>
+    <testng.version>7.8.0</testng.version>
     <pulsar.version>2.10.0</pulsar.version>
-    <liquibase.version>4.17.2</liquibase.version>
-    <compiler-plugin.version>3.10.1</compiler-plugin.version>
-    <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
+    <liquibase.version>4.22.0</liquibase.version>
+    <compiler-plugin.version>3.11.0</compiler-plugin.version>
+    <surefire-plugin.version>3.1.2</surefire-plugin.version>
     <failsafe-plugin.version>3.0.0-M5</failsafe-plugin.version>
-    <jacoco.version>0.8.8</jacoco.version>
+    <jacoco.version>0.8.10</jacoco.version>
     <reflections.version>0.10.2</reflections.version>
     <json-web-token.version>0.11.5</json-web-token.version>
-    <jhlite.version>0.21.0</jhlite.version>
+    <jhlite.version>0.33.0</jhlite.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
+    <ehcache.version>3.10.8</ehcache.version>
+    <git-commit-id-plugin.version>6.0.0</git-commit-id-plugin.version>
+    <cassandraunit.version>4.3.1.0</cassandraunit.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>io.jsonwebtoken</groupId>
-        <artifactId>jjwt-api</artifactId>
-        <version>${jjwt.version}</version>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${junit-jupiter.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>${assertj.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>net.logstash.logback</groupId>
@@ -60,8 +84,23 @@
       </dependency>
       <dependency>
         <groupId>org.springdoc</groupId>
-        <artifactId>springdoc-openapi-ui</artifactId>
-        <version>${springdoc-openapi.version}</version>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>${springdoc-openapi-starter-webmvc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+        <version>${springdoc-openapi-starter-webmvc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+        <version>${springdoc-openapi-starter-webflux.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webflux-api</artifactId>
+        <version>${springdoc-openapi-starter-webflux.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
@@ -82,11 +121,6 @@
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
         <version>${testcontainers.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.zalando</groupId>
-        <artifactId>problem-spring-web</artifactId>
-        <version>${problem-spring.version}</version>
       </dependency>
       <dependency>
         <groupId>net.nicoulaj.maven.plugins</groupId>
@@ -221,6 +255,16 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${commons-lang3.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.ehcache</groupId>
+        <artifactId>ehcache</artifactId>
+        <version>${ehcache.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.git-commit-id</groupId>
+        <artifactId>git-commit-id-maven-plugin</artifactId>
+        <version>${git-commit-id-plugin.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

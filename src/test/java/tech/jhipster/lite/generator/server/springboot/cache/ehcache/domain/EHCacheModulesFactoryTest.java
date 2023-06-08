@@ -38,44 +38,14 @@ class EHCacheModulesFactoryTest {
     JHipsterModule module = factory.buildXmlConfigurationModule(properties());
 
     commonEHCacheModuleAsserter(module)
-      .hasFile("pom.xml")
-      .containing(
-        """
-            <dependency>
-              <groupId>jakarta.xml.bind</groupId>
-              <artifactId>jakarta.xml.bind-api</artifactId>
-            </dependency>
-        """
-      )
-      .containing(
-        """
-            <dependency>
-              <groupId>org.glassfish.jaxb</groupId>
-              <artifactId>jaxb-runtime</artifactId>
-              <scope>runtime</scope>
-            </dependency>
-        """
-      )
-      .and()
-      .hasFile("src/main/java/com/jhipster/test/technical/infrastructure/secondary/cache/CacheConfiguration.java")
-      .notContaining("JCacheManagerCustomizer")
-      .and()
       .hasFiles("src/main/resources/config/ehcache/ehcache.xml")
       .hasFile("src/main/resources/config/application.properties")
       .containing("spring.cache.jcache.config=classpath:config/ehcache/ehcache.xml");
   }
 
   private JHipsterModuleAsserter commonEHCacheModuleAsserter(JHipsterModule module) {
-    return assertThatModuleWithFiles(module, pomFile(), lockbackFile(), testLockbackFile())
+    return assertThatModuleWithFiles(module, pomFile(), logbackFile(), testLogbackFile())
       .hasFile("pom.xml")
-      .containing(
-        """
-            <dependency>
-              <groupId>org.springframework.boot</groupId>
-              <artifactId>spring-boot-starter-cache</artifactId>
-            </dependency>
-        """
-      )
       .containing(
         """
             <dependency>
@@ -89,6 +59,7 @@ class EHCacheModulesFactoryTest {
             <dependency>
               <groupId>org.ehcache</groupId>
               <artifactId>ehcache</artifactId>
+              <classifier>jakarta</classifier>
             </dependency>
         """
       )

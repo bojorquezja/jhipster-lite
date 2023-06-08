@@ -41,7 +41,7 @@ public class CustomJHLiteModuleFactory {
     //@formatter:off
     return cucumberModuleBuilder(properties)
       .context()
-        .put("applicationName", properties.projectBaseName().capitalized())
+        .put("baseName", properties.projectBaseName().capitalized())
         .and()
       .documentation(documentationTitle("Module creation"), SOURCE.template("module-creation.md"))
       .documentation(documentationTitle("Cucumber"), CUCUMBER_SOURCE.template("cucumber.md"))
@@ -60,6 +60,7 @@ public class CustomJHLiteModuleFactory {
         .set(SERVER_PORT_KEY, propertyValue(properties.serverPort().stringValue()))
         .set(JACKSON_INCLUSION_KEY, propertyValue("non_null"))
         .set(HIDDEN_TAGS_PROPERTY_KEY, propertyValue("banner"))
+        .comment(HIDDEN_SLUGS_PROPERTY_KEY, comment("Disable the modules and its dependencies by slugs"))
         .set(HIDDEN_SLUGS_PROPERTY_KEY, propertyValue("custom-jhlite"))
         .and()
       .springTestProperties()
@@ -102,6 +103,6 @@ public class CustomJHLiteModuleFactory {
   }
 
   private PropertyValue exceptionPackages(JHipsterModuleProperties properties) {
-    return propertyValue("org.", "java.", "net.", "javax.", "com.", "io.", "de.", "tech.jhipster.lite", properties.basePackage().get());
+    return propertyValue("org.", "java.", "net.", "jakarta.", "com.", "io.", "de.", "tech.jhipster.lite", properties.basePackage().get());
   }
 }

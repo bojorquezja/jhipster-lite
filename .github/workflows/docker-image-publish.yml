@@ -1,31 +1,15 @@
-#
-# Copyright 2013-2022 the original author or authors from the JHipster project.
-#
-# This file is part of the JHipster project, see https://www.jhipster.tech/
-# for more information.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
-
 name: Publish Docker Image
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    # Avoid building on main branch - see https://github.com/jhipster/jhipster-lite/issues/5341
+#    branches:
+#      - main
     # Publish semver tags as releases.
     tags:
       - 'v*.*.*'
+  schedule:
+    - cron: '0 0 * * *'
 
 jobs:
   build:
@@ -44,7 +28,7 @@ jobs:
           platforms: arm64
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2.2.1
+        uses: docker/setup-buildx-action@v2.5.0
 
       - name: Login to GitHub Container Registry
         if: github.event_name != 'pull_request'
@@ -66,12 +50,12 @@ jobs:
 
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v4.1.1
+        uses: docker/metadata-action@v4.4.0
         with:
           images: ghcr.io/${{ github.repository }}${{ (steps.login-hub.outcome == 'success' && ',jhipster/jhipster-lite') || ''}}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3.2.0
+        uses: docker/build-push-action@v4.0.0
         with:
           context: .
           platforms: linux/amd64,linux/arm64

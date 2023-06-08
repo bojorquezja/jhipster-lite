@@ -10,41 +10,68 @@ import { wrappedElement } from '../../../WrappedElement';
 import { defaultLandscape } from '../../domain/landscape/Landscape.fixture';
 import { ModulesRepositoryStub, projectHistoryWithInit, stubModulesRepository } from '../../domain/Modules.fixture';
 import { ProjectFoldersRepositoryStub, stubProjectFoldersRepository } from '../../domain/ProjectFolders.fixture';
+import { ModuleParametersRepositoryStub, stubModuleParametersRepository } from '../../domain/ModuleParameters.fixture';
 import { stubWindow } from '../GlobalWindow.fixture';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { BodyCursorUpdater } from '@/common/primary/cursor/BodyCursorUpdater';
+import { LandscapeScroller } from '@/module/primary/landscape/LandscapeScroller';
+import { ModuleParametersRepository } from '@/module/domain/ModuleParametersRepository';
 
 interface ApplicationListenerStub extends ApplicationListener {
   addEventListener: SinonStub;
   removeEventListener: SinonStub;
 }
+interface BodyCursorUpdaterStub extends BodyCursorUpdater {
+  set: SinonStub;
+  reset: SinonStub;
+}
+
+const stubBodyCursorUpdater = (): BodyCursorUpdaterStub =>
+  ({
+    set: sinon.stub(),
+    reset: sinon.stub(),
+  } as BodyCursorUpdaterStub);
 
 const stubApplicationListener = (): ApplicationListenerStub => ({
   addEventListener: sinon.stub(),
   removeEventListener: sinon.stub(),
 });
 
+const stubLandscapeScroller = (): any => ({
+  scroll: sinon.stub(),
+});
+
 interface WrapperOptions {
+  cursorUpdater: BodyCursorUpdater;
+  landscapeScroller: LandscapeScroller;
   modules: ModulesRepository;
   applicationListener: ApplicationListener;
+  moduleParameters: ModuleParametersRepository;
 }
 
 const alertBus = stubAlertBus();
 
 const wrap = (options?: Partial<WrapperOptions>): VueWrapper => {
-  const { modules, applicationListener }: WrapperOptions = {
+  const { applicationListener, cursorUpdater, landscapeScroller, modules, moduleParameters }: WrapperOptions = {
+    cursorUpdater: stubBodyCursorUpdater(),
+    landscapeScroller: stubLandscapeScroller(),
     modules: repositoryWithLandscape(),
     applicationListener: stubApplicationListener(),
+    moduleParameters: repositoryWithModuleParameters(),
     ...options,
   };
 
   return mount(LandscapeVue, {
     global: {
       provide: {
-        modules,
-        applicationListener,
         alertBus,
-        projectFolders: repositoryWithProjectFolders(),
+        applicationListener,
+        cursorUpdater,
         globalWindow: stubWindow(),
+        landscapeScroller,
+        modules,
+        projectFolders: repositoryWithProjectFolders(),
+        moduleParameters,
       },
     },
   });
@@ -70,6 +97,15 @@ const repositoryWithLandscape = (): ModulesRepositoryStub => {
   return modules;
 };
 
+const repositoryWithLandscapeError = (): ModulesRepositoryStub => {
+  const modules = stubModulesRepository();
+  modules.landscape.rejects(new Error('repositoryWithLandscapeError'));
+  modules.applyAll.resolves(undefined);
+  modules.history.resolves(projectHistoryWithInit());
+
+  return modules;
+};
+
 const repositoryWithProjectFolders = (): ProjectFoldersRepositoryStub => {
   const projectFolders = stubProjectFoldersRepository();
   projectFolders.get.resolves('/tmp/jhlite/1234');
@@ -77,13 +113,93 @@ const repositoryWithProjectFolders = (): ProjectFoldersRepositoryStub => {
   return projectFolders;
 };
 
+const repositoryWithProjectFoldersError = (): ProjectFoldersRepositoryStub => {
+  const projectFolders = stubProjectFoldersRepository();
+  projectFolders.get.rejects(new Error('repositoryWithProjectFoldersError'));
+
+  return projectFolders;
+};
+
+const repositoryWithModuleParameters = (): ModuleParametersRepositoryStub => {
+  const moduleParameters = stubModuleParametersRepository();
+  moduleParameters.store.resolves(undefined);
+  moduleParameters.storeCurrentFolderPath.resolves('');
+  moduleParameters.getCurrentFolderPath.returns('');
+  moduleParameters.get.returns(new Map());
+  return moduleParameters;
+};
+
 describe('Landscape', () => {
+  beforeAll(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
   describe('Loading', () => {
     it('Should display loader when loading landscape', () => {
       const wrapper = wrap();
 
       expect(wrapper.find(wrappedElement('landscape-loader')).exists()).toBe(true);
       expect(wrapper.find(wrappedElement('landscape')).exists()).toBe(false);
+    });
+
+    it('Should catch error when waiting for modules error', () => {
+      try {
+        const { applicationListener, cursorUpdater, landscapeScroller, modules, moduleParameters }: WrapperOptions = {
+          cursorUpdater: stubBodyCursorUpdater(),
+          landscapeScroller: stubLandscapeScroller(),
+          modules: repositoryWithLandscapeError(),
+          applicationListener: stubApplicationListener(),
+          moduleParameters: repositoryWithModuleParameters(),
+        };
+
+        return mount(LandscapeVue, {
+          global: {
+            provide: {
+              alertBus,
+              applicationListener,
+              cursorUpdater,
+              globalWindow: stubWindow(),
+              landscapeScroller,
+              modules,
+              projectFolders: repositoryWithProjectFolders(),
+              moduleParameters,
+            },
+          },
+        });
+      } catch (e) {
+        expect(e.message).toEqual('repositoryWithLandscapeError');
+        expect(console.error).toHaveBeenCalled();
+      }
+    });
+
+    it('Should catch error when waiting for project folders error', () => {
+      try {
+        const { applicationListener, cursorUpdater, landscapeScroller, modules, moduleParameters }: WrapperOptions = {
+          cursorUpdater: stubBodyCursorUpdater(),
+          landscapeScroller: stubLandscapeScroller(),
+          modules: repositoryWithLandscape(),
+          applicationListener: stubApplicationListener(),
+          moduleParameters: repositoryWithModuleParameters(),
+        };
+
+        return mount(LandscapeVue, {
+          global: {
+            provide: {
+              alertBus,
+              applicationListener,
+              cursorUpdater,
+              globalWindow: stubWindow(),
+              landscapeScroller,
+              modules,
+              projectFolders: repositoryWithProjectFoldersError(),
+              moduleParameters,
+            },
+          },
+        });
+      } catch (e) {
+        expect(e.message).toEqual('repositoryWithProjectFoldersErrorww');
+        expect(console.error).toHaveBeenCalled();
+      }
     });
 
     it('Should load landscape at startup', async () => {
@@ -106,6 +222,17 @@ describe('Landscape', () => {
       wrapper.unmount();
 
       expect(applicationListener.removeEventListener.calledOnce).toBe(true);
+    });
+
+    it('Should load folder path from local storage', async () => {
+      const moduleParameters = repositoryWithModuleParameters();
+      moduleParameters.getCurrentFolderPath.returns('/tmp/jhlite/5678');
+
+      const wrapper = wrap({ moduleParameters });
+      await flushPromises();
+
+      const pathField = wrapper.find(wrappedElement('folder-path-field')).element as HTMLInputElement;
+      expect(pathField.value).toBe('/tmp/jhlite/5678');
     });
   });
 
@@ -239,6 +366,18 @@ describe('Landscape', () => {
       expect(wrapper.find(wrappedElement('maven-module')).classes()).toContain('-highlighted-unselection');
       expect(wrapper.find(wrappedElement('spring-boot-module')).classes()).toContain('-highlighted-unselection');
       assertUnSelectionHighlightedConnectorsCount(wrapper, 2);
+    });
+
+    it('Should put not emphasized in background', async () => {
+      const wrapper = await componentWithLandscape();
+
+      wrapper.find(wrappedElement('infinitest-module')).trigger('mouseover');
+      await wrapper.vm.$nextTick();
+      expect(wrapper.find(wrappedElement('landscape-container')).classes()).toContain('has-emphasized-module');
+
+      wrapper.find(wrappedElement('infinitest-module')).trigger('mouseleave');
+      await wrapper.vm.$nextTick();
+      expect(wrapper.find(wrappedElement('landscape-container')).classes()).not.toContain('has-emphasized-module');
     });
   });
 
@@ -574,7 +713,7 @@ describe('Landscape', () => {
       const wrapper = wrap({ modules });
       await flushPromises();
 
-      const consoleErrors = vi.spyOn(console, 'error').mockImplementation();
+      const consoleErrors = vi.spyOn(console, 'error').mockImplementation(() => {});
       await updatePath(wrapper);
 
       expect(console.error).toHaveBeenCalledTimes(0);
@@ -660,6 +799,106 @@ describe('Landscape', () => {
       await flushPromises();
 
       expect(wrapper.find(wrappedElement('modules-apply-all-button')).attributes('disabled')).toBeUndefined();
+    });
+  });
+
+  describe('Scrolling', () => {
+    it('should start grabbing', async () => {
+      const cursorUpdater = stubBodyCursorUpdater();
+      const modules = repositoryWithLandscape();
+      const wrapper = wrap({ modules, cursorUpdater });
+      await flushPromises();
+      const mouseEvent = {
+        pageX: 0,
+        pageY: 0,
+        preventDefault: undefined,
+      };
+
+      const landscape = wrapper.find(wrappedElement('landscape-container'))!;
+      await landscape.trigger('mousedown', mouseEvent);
+
+      const { args } = cursorUpdater.set.getCall(0);
+      expect(args).toEqual(['grabbing']);
+    });
+
+    it('should prevent default clicking event when defined', async () => {
+      const cursorUpdater = stubBodyCursorUpdater();
+      const modules = repositoryWithLandscape();
+      const wrapper = wrap({ modules, cursorUpdater });
+      await flushPromises();
+      const mouseEvent = {
+        pageX: 0,
+        pageY: 0,
+        preventDefault: sinon.stub(),
+      };
+
+      const landscape = wrapper.find(wrappedElement('landscape-container'))!;
+      await landscape.trigger('mousedown', mouseEvent);
+
+      expect(mouseEvent.preventDefault.called).toBe(true);
+    });
+
+    it('should stop grabbing on mouseup', async () => {
+      const modules = repositoryWithLandscape();
+      const cursorUpdater = stubBodyCursorUpdater();
+      const wrapper = wrap({ modules, cursorUpdater });
+      await flushPromises();
+
+      const landscape = wrapper.find(wrappedElement('landscape-container'))!;
+      await landscape.trigger('mouseup');
+
+      expect(cursorUpdater.reset.called).toBe(true);
+    });
+
+    it('should stop grabbing on mouseleave', async () => {
+      const modules = repositoryWithLandscape();
+      const cursorUpdater = stubBodyCursorUpdater();
+      const wrapper = wrap({ modules, cursorUpdater });
+      await flushPromises();
+
+      const landscape = wrapper.find(wrappedElement('landscape-container'))!;
+      await landscape.trigger('mouseleave');
+
+      expect(cursorUpdater.reset.called).toBe(true);
+    });
+
+    it('should be scrolling', async () => {
+      const landscapeScroller = stubLandscapeScroller();
+      const cursorUpdater = stubBodyCursorUpdater();
+      const modules = repositoryWithLandscape();
+      const wrapper = wrap({ modules, cursorUpdater, landscapeScroller });
+      await flushPromises();
+      const mouseEventStart = {
+        clientX: 30,
+        clientY: 30,
+      };
+      const mouseEventGrabbed = {
+        clientX: 10,
+        clientY: 10,
+      };
+
+      const landscape = wrapper.find(wrappedElement('landscape-container'))!;
+      await landscape.trigger('mousedown', mouseEventStart);
+      await landscape.trigger('mousemove', mouseEventGrabbed);
+
+      const { args } = landscapeScroller.scroll.getCall(0);
+      expect(args).toEqual([expect.anything(), 20, 20]);
+    });
+
+    it('should not scroll without starting grabbing', async () => {
+      const landscapeScroller = stubLandscapeScroller();
+      const modules = repositoryWithLandscape();
+      const wrapper = wrap({ modules, landscapeScroller });
+      await flushPromises();
+      const mouseEventGrabbed = {
+        clientX: 10,
+        clientY: 10,
+      };
+
+      const landscape = wrapper.find(wrappedElement('landscape-container'))!;
+      await landscape.trigger('mousemove', mouseEventGrabbed);
+
+      expect(landscapeScroller.scroll.called).toBe(false);
     });
   });
 });
