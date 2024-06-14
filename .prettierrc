@@ -5,6 +5,13 @@ singleQuote: true
 tabWidth: 2
 useTabs: false
 
+plugins:
+  - '@prettier/plugin-xml'
+  - '@prettier/plugin-pug'
+  - prettier-plugin-java
+  - prettier-plugin-gherkin
+  - prettier-plugin-packagejson
+
 # js and ts rules:
 arrowParens: avoid
 

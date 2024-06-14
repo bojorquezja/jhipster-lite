@@ -19,16 +19,23 @@ class JHipsterModuleSlugTest {
 
   @Test
   void shouldSortModules() {
-    Stream<JHipsterModuleSlug> modules = Stream
-      .of(new JHipsterModuleSlug("root"), new JHipsterModuleSlug("init"), new JHipsterModuleSlug("dummy"), new JHipsterModuleSlug("init"))
-      .sorted();
+    Stream<JHipsterModuleSlug> modules = Stream.of(
+      new JHipsterModuleSlug("root"),
+      new JHipsterModuleSlug("init"),
+      new JHipsterModuleSlug("dummy"),
+      new JHipsterModuleSlug("init")
+    ).sorted();
 
-    assertThat(modules)
-      .containsExactly(
-        new JHipsterModuleSlug("init"),
-        new JHipsterModuleSlug("init"),
-        new JHipsterModuleSlug("dummy"),
-        new JHipsterModuleSlug("root")
-      );
+    assertThat(modules).containsExactly(
+      new JHipsterModuleSlug("init"),
+      new JHipsterModuleSlug("init"),
+      new JHipsterModuleSlug("dummy"),
+      new JHipsterModuleSlug("root")
+    );
+  }
+
+  @Test
+  void testToStringShowsSlug() {
+    assertThat(new JHipsterModuleSlug("init")).hasToString("init");
   }
 }

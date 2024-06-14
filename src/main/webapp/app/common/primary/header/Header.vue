@@ -1,10 +1,12 @@
 <template>
   <header class="jhlite-header">
-    <div class="jhlite-header--slot">
+    <div class="jhlite-header--slot jhlite-with-theme-switch">
       <router-link class="jhlite-logo" to="/">
         <img class="jhlite-logo--icon" src="../../../../content/JHipster-Lite-neon-blue.png" alt="JHipster bow tie" width="48" />
         <span class="jhlite-logo--text">JHipster lite</span>
+        <span class="jhlite-logo-version--text">{{ version }}</span>
       </router-link>
+      <ThemeButtonVue />
     </div>
     <div class="jhlite-header--slot -expand"></div>
     <div class="jhlite-header--slot">
@@ -29,16 +31,6 @@
                 <span class="jhlite-icon-text--text">Patches</span>
               </span>
             </router-link>
-          </li>
-          <li class="jhlite-nav--item">
-            <a class="jhlite-nav-item" href="./swagger-ui.html" target="_blank">
-              <span class="jhlite-icon-text">
-                <span class="jhlite-icon-text--icon">
-                  <IconVue name="binoculars" aria-label="Icon binoculars" title="Swagger UI" />
-                </span>
-                <span class="jhlite-icon-text--text">Swagger UI</span>
-              </span>
-            </a>
           </li>
           <li class="jhlite-nav--item">
             <a class="jhlite-nav-item" href="https://www.jhipster.tech/jhipster-lite" target="_blank" rel="noopener">

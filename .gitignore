@@ -3,7 +3,7 @@
 ######################
 /src/main/webapp/content/css/main.css
 /target/classes/static/**
-/src/test/javascript/coverage/
+/src/test/webapp/coverage/
 
 ######################
 # JHipster Lite
@@ -157,6 +157,7 @@ infinitest.filters
 *.*~
 *~
 .merge_file*
+.attach_pid*
 .history
 
 ######################
@@ -184,3 +185,13 @@ dist/
 # Svelte
 ######################
 .svelte-kit/
+
+######################
+# Spring personal profile
+######################
+src/main/resources/config/application-perso.*
+
+######################
+# Gradle Develocity Settings
+######################
+.mvn/.develocity/develocity-workspace-id

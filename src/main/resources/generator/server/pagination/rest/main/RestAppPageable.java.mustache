@@ -1,11 +1,11 @@
-package {{packageName}}.pagination.infrastructure.primary;
+package {{packageName}}.shared.pagination.infrastructure.primary;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import {{packageName}}.common.domain.Generated;
-import {{packageName}}.pagination.domain.{{baseName}}Pageable;
+import {{packageName}}.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
+import {{packageName}}.shared.pagination.domain.{{baseName}}Pageable;
 
 @Schema(name = "{{baseName}}Pageable", description = "Pagination information")
 public class Rest{{baseName}}Pageable {
@@ -13,7 +13,7 @@ public class Rest{{baseName}}Pageable {
   private int page;
   private int pageSize = 10;
 
-  @Generated
+  @ExcludeFromGeneratedCodeCoverage
   public Rest{{baseName}}Pageable() {}
 
   public Rest{{baseName}}Pageable(int page, int pageSize) {

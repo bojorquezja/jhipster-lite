@@ -1,8 +1,11 @@
 package tech.jhipster.lite.module.domain.properties;
 
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.Indentation;
+import tech.jhipster.lite.module.domain.javadependency.Version;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class JHipsterModuleProperties {
 
@@ -11,6 +14,9 @@ public class JHipsterModuleProperties {
   public static final String PROJECT_NAME_PARAMETER = "projectName";
   public static final String PROJECT_BASE_NAME_PARAMETER = "baseName";
   public static final String SERVER_PORT_PARAMETER = "serverPort";
+  public static final String SPRING_CONFIGURATION_FORMAT = "springConfigurationFormat";
+  public static final String JAVA_VERSION = "javaVersion";
+  public static final String PROJECT_BUILD_DIRECTORY = "projectBuildDirectory";
 
   private final JHipsterProjectFolder projectFolder;
   private final boolean commitModule;
@@ -21,6 +27,8 @@ public class JHipsterModuleProperties {
   private final JHipsterProjectName projectName;
   private final JHipsterProjectBaseName projectBaseName;
   private final JHipsterServerPort serverPort;
+  private final SpringConfigurationFormat springConfigurationFormat;
+  private final Version javaVersion = new Version("21");
 
   public JHipsterModuleProperties(String projectFolder, boolean commitModule, Map<String, Object> parameters) {
     this.projectFolder = new JHipsterProjectFolder(projectFolder);
@@ -32,6 +40,9 @@ public class JHipsterModuleProperties {
     projectName = new JHipsterProjectName(this.parameters.getOrDefault(PROJECT_NAME_PARAMETER, null, String.class));
     projectBaseName = new JHipsterProjectBaseName(this.parameters.getOrDefault(PROJECT_BASE_NAME_PARAMETER, null, String.class));
     serverPort = new JHipsterServerPort(this.parameters.getOrDefault(SERVER_PORT_PARAMETER, null, Integer.class));
+    springConfigurationFormat = SpringConfigurationFormat.from(
+      this.parameters.getOrDefault(SPRING_CONFIGURATION_FORMAT, SpringConfigurationFormat.YAML.get(), String.class)
+    );
   }
 
   public JHipsterProjectFolder projectFolder() {
@@ -42,6 +53,10 @@ public class JHipsterModuleProperties {
     return commitModule;
   }
 
+  public Version javaVersion() {
+    return javaVersion;
+  }
+
   public String getString(String key) {
     return parameters.get(key, String.class);
   }
@@ -50,6 +65,15 @@ public class JHipsterModuleProperties {
     Assert.notBlank("defaultValue", defaultValue);
 
     return parameters.getOrDefault(key, defaultValue, String.class, String::isBlank);
+  }
+
+  public Instant getInstantOrDefault(String key, Instant defaultValue) {
+    String date = getOrDefaultString(key, defaultValue.toString());
+    try {
+      return Instant.parse(date);
+    } catch (DateTimeParseException ex) {
+      throw InvalidPropertyTypeException.builder().key(key).expectedType(Instant.class).actualType(String.class);
+    }
   }
 
   public boolean getBoolean(String key) {
@@ -92,7 +116,16 @@ public class JHipsterModuleProperties {
     return serverPort;
   }
 
+  public SpringConfigurationFormat springConfigurationFormat() {
+    return springConfigurationFormat;
+  }
+
   public Map<String, Object> getParameters() {
     return parameters.get();
+  }
+
+  @Override
+  public String toString() {
+    return String.valueOf(projectName);
   }
 }

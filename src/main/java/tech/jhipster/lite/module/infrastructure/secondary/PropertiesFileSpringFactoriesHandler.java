@@ -1,21 +1,23 @@
 package tech.jhipster.lite.module.infrastructure.secondary;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import tech.jhipster.lite.common.domain.ExcludeFromGeneratedCodeCoverage;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.error.domain.GeneratorException;
 import tech.jhipster.lite.module.domain.javaproperties.PropertyKey;
 import tech.jhipster.lite.module.domain.javaproperties.PropertyValue;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 public class PropertiesFileSpringFactoriesHandler {
-
-  private final Path file;
 
   private static final String EQUAL = "=";
   private static final String COLLECTION_SEPARATOR = ",";
   private static final String LINE_BREAK = System.lineSeparator();
+
+  private final Path file;
 
   public PropertiesFileSpringFactoriesHandler(Path file) {
     Assert.notNull("file", file);
@@ -59,10 +61,10 @@ public class PropertiesFileSpringFactoriesHandler {
     StringBuilder newProperties = new StringBuilder(currentProperties);
     int eolIndex = newProperties.indexOf(LINE_BREAK, propertyIndex);
 
-    for (String propertyValue : value.get()) {
-      if (!newProperties.substring(propertyIndex, eolIndex).contains(propertyValue)) {
+    for (Object propertyValue : value.get()) {
+      if (!newProperties.substring(propertyIndex, eolIndex).contains(propertyValue.toString())) {
         newProperties.insert(eolIndex, COLLECTION_SEPARATOR + propertyValue);
-        eolIndex = eolIndex + COLLECTION_SEPARATOR.length() + propertyValue.length();
+        eolIndex = eolIndex + COLLECTION_SEPARATOR.length() + propertyValue.toString().length();
       }
     }
     return newProperties.toString();
@@ -84,7 +86,7 @@ public class PropertiesFileSpringFactoriesHandler {
   }
 
   private static String joinedPropertyValues(PropertyValue value) {
-    return String.join(COLLECTION_SEPARATOR, value.get());
+    return value.get().stream().map(Object::toString).collect(joining(COLLECTION_SEPARATOR));
   }
 
   private String propertyId(PropertyKey key) {

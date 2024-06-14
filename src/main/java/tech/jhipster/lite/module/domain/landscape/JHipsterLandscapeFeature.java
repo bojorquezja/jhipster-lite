@@ -2,11 +2,10 @@ package tech.jhipster.lite.module.domain.landscape;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterFeatureSlug;
 import tech.jhipster.lite.module.domain.JHipsterSlug;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public final class JHipsterLandscapeFeature implements JHipsterLandscapeElement {
 
@@ -28,20 +27,10 @@ public final class JHipsterLandscapeFeature implements JHipsterLandscapeElement 
       modules()
         .stream()
         .map(JHipsterLandscapeModule::dependencies)
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .flatMap(toDependencies())
+        .flatMap(Optional::stream)
+        .flatMap(JHipsterLandscapeDependencies::stream)
         .toList()
     );
-  }
-
-  private Function<JHipsterLandscapeDependencies, Stream<JHipsterLandscapeDependency>> toDependencies() {
-    return dep -> dep.dependencies().stream();
-  }
-
-  @Override
-  public JHipsterLandscapeElementType type() {
-    return JHipsterLandscapeElementType.FEATURE;
   }
 
   @Override

@@ -2,16 +2,16 @@ package tech.jhipster.lite.generator.server.springboot.database.hibernate2ndleve
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.file.JHipsterDestination;
 import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class Hibernate2ndLevelCacheModuleFactory {
 
-  private static final String DEST_SECONDARY = "technical/infrastructure/secondary/cache";
+  private static final String DEST_SECONDARY = "wire/cache/infrastructure/secondary";
 
   private static final JHipsterSource SOURCE = from("server/springboot/database/hibernate2ndlevelcache");
 
@@ -35,10 +35,7 @@ public class Hibernate2ndLevelCacheModuleFactory {
         )
         .and()
       .springMainProperties()
-        .set(propertyKey("spring.jpa.properties.hibernate.cache.use_second_level_cache"), propertyValue("true"))
-        .and()
-      .springTestProperties()
-        .set(propertyKey("spring.jpa.properties.hibernate.cache.use_second_level_cache"), propertyValue("true"))
+        .set(propertyKey("spring.jpa.properties.hibernate.cache.use_second_level_cache"), propertyValue(true))
         .and()
       .files()
         .add(TEST_SOURCE.template("Hibernate2ndLevelCacheConfigurationIT.java"), testDestination.append("Hibernate2ndLevelCacheConfigurationIT.java"))

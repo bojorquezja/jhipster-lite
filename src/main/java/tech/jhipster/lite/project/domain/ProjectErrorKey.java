@@ -1,9 +1,9 @@
 package tech.jhipster.lite.project.domain;
 
-import tech.jhipster.lite.error.domain.ErrorKey;
+import tech.jhipster.lite.shared.error.domain.ErrorKey;
 
 enum ProjectErrorKey implements ErrorKey {
-  UNKOWN_PROJECT("unknown-project-folder");
+  UNKNOWN_PROJECT("unknown-project-folder");
 
   private final String key;
 

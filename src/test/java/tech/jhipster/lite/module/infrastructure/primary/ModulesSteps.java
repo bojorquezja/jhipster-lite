@@ -1,8 +1,9 @@
 package tech.jhipster.lite.module.infrastructure.primary;
 
-import static org.assertj.core.api.Assertions.*;
-import static tech.jhipster.lite.TestProjects.*;
-import static tech.jhipster.lite.cucumber.CucumberAssertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static tech.jhipster.lite.TestProjects.lastProjectFolder;
+import static tech.jhipster.lite.TestProjects.newTestFolder;
+import static tech.jhipster.lite.cucumber.rest.CucumberRestAssertions.assertThatLastResponse;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -20,56 +21,61 @@ import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.SoftAssertions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
-import tech.jhipster.lite.cucumber.CucumberTestContext;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import tech.jhipster.lite.cucumber.rest.CucumberRestTestContext;
 import tech.jhipster.lite.module.infrastructure.secondary.git.GitTestUtil;
 
 public class ModulesSteps {
 
-  @Autowired
-  private TestRestTemplate rest;
-
   private static final String MODULE_APPLICATION_TEMPLATE =
     """
-      {
-      "projectFolder": "{PROJECT_FOLDER}",
-      "parameters": {{ PARAMETERS }}
-      }
-      """;
+    {
+    "projectFolder": "{PROJECT_FOLDER}",
+    "parameters": {{ PARAMETERS }}
+    }
+    """;
 
   private static final String MODULE_APPLY_AND_COMMIT_TEMPLATE =
     """
-      {
-      "projectFolder": "{PROJECT_FOLDER}",
-      "commit": true,
-      "parameters": {{ PARAMETERS }}
-      }
-      """;
+    {
+    "projectFolder": "{PROJECT_FOLDER}",
+    "commit": true,
+    "parameters": {{ PARAMETERS }}
+    }
+    """;
 
   private static final String DEFAULT_MODULES_PROPERTIES_TEMPLATE =
     """
-      {
-        "modules": [{MODULES}],
-        "properties":
-          {
-            "projectFolder": "{PROJECT_FOLDER}",
-            "parameters": {
-              "projectName": "Chips Project",
-              "baseName": "chips",
-              "packageName": "tech.jhipster.chips",
-              "serverPort": 8080
-            }
+    {
+      "modules": [{MODULES}],
+      "properties":
+        {
+          "projectFolder": "{PROJECT_FOLDER}",
+          "parameters": {
+            "projectName": "Chips Project",
+            "baseName": "chips",
+            "packageName": "tech.jhipster.chips",
+            "serverPort": 8080
           }
-      }
-      """;
+        }
+    }
+    """;
+
+  @Autowired
+  private TestRestTemplate rest;
 
   @When("I apply modules to default project")
   public void applyModulesForDefaultProject(List<String> modulesSlugs) {
     String projectFolder = newTestFolder();
 
-    String query = DEFAULT_MODULES_PROPERTIES_TEMPLATE
-      .replace("{PROJECT_FOLDER}", projectFolder)
-      .replace("{MODULES}", buildModulesList(modulesSlugs));
+    String query = DEFAULT_MODULES_PROPERTIES_TEMPLATE.replace("{PROJECT_FOLDER}", projectFolder).replace(
+      "{MODULES}",
+      buildModulesList(modulesSlugs)
+    );
 
     post("/api/apply-patches", query);
   }
@@ -120,7 +126,16 @@ public class ModulesSteps {
   public void applyModuleForDefaultProjectWithMavenFile(String moduleSlug, Map<String, String> parameters) {
     String projectFolder = newTestFolder();
 
-    addPomToProject(projectFolder);
+    post(applyModuleUrl("maven-java"), buildModuleQuery(projectFolder, parameters));
+
+    post(applyModuleUrl(moduleSlug), buildModuleQuery(projectFolder, parameters));
+  }
+
+  @When("I apply {string} module to default project with gradle build")
+  public void applyModuleForDefaultProjectWithGradle(String moduleSlug, Map<String, String> parameters) {
+    String projectFolder = newTestFolder();
+
+    post(applyModuleUrl("gradle-java"), buildModuleQuery(projectFolder, parameters));
 
     post(applyModuleUrl(moduleSlug), buildModuleQuery(projectFolder, parameters));
   }
@@ -139,9 +154,10 @@ public class ModulesSteps {
 
     loadGitConfig(projectPath);
 
-    String query = MODULE_APPLY_AND_COMMIT_TEMPLATE
-      .replace("{PROJECT_FOLDER}", projectFolder)
-      .replace("{{ PARAMETERS }}", buildModuleParameters(parameters));
+    String query = MODULE_APPLY_AND_COMMIT_TEMPLATE.replace("{PROJECT_FOLDER}", projectFolder).replace(
+      "{{ PARAMETERS }}",
+      buildModuleParameters(parameters)
+    );
 
     post(applyModuleUrl(moduleSlug), query);
   }
@@ -174,9 +190,10 @@ public class ModulesSteps {
   }
 
   private String buildModuleQuery(String projectFolder, Map<String, String> parameters) {
-    return MODULE_APPLICATION_TEMPLATE
-      .replace("{PROJECT_FOLDER}", projectFolder)
-      .replace("{{ PARAMETERS }}", buildModuleParameters(parameters));
+    return MODULE_APPLICATION_TEMPLATE.replace("{PROJECT_FOLDER}", projectFolder).replace(
+      "{{ PARAMETERS }}",
+      buildModuleParameters(parameters)
+    );
   }
 
   private String buildModuleParameters(Map<String, String> parameters) {
@@ -213,10 +230,6 @@ public class ModulesSteps {
 
   private static void addPackageJsonToProject(String folder) {
     addFileToProject(folder, "src/test/resources/projects/empty-node/package.json", "package.json");
-  }
-
-  private static void addPomToProject(String folder) {
-    addFileToProject(folder, "src/test/resources/projects/init-maven/pom.xml", "pom.xml");
   }
 
   private static void addFileToProject(String folder, String source, String destination) {
@@ -295,20 +308,20 @@ public class ModulesSteps {
   }
 
   @Then("I should have properties definitions")
-  public void shouldHaveModulePropertiesDefintions(List<Map<String, Object>> propertiesDefintion) {
-    assertThatLastResponse().hasOkStatus().hasElement("$.definitions").containingExactly(propertiesDefintion);
+  public void shouldHaveModulePropertiesDefinitions(List<Map<String, Object>> propertiesDefinition) {
+    assertThatLastResponse().hasOkStatus().hasElement("$.definitions").containingExactly(propertiesDefinition);
   }
 
   @Then("I should have landscape level {int} with elements")
-  public void shouldHavelandscapeLevelElements(int level, List<Map<String, String>> elements) {
+  public void shouldHaveLandscapeLevelElements(int level, List<Map<String, String>> elements) {
     assertThatLastResponse().hasOkStatus();
 
     elements.forEach(element -> {
-      JSONArray types = (JSONArray) CucumberTestContext.getElement(
+      JSONArray types = (JSONArray) CucumberRestTestContext.getElement(
         "$.levels[" + level + "].elements[?(@.slug=='" + element.get("Slug") + "')].type"
       );
 
-      assertThat(types.get(0)).isEqualTo(element.get("Type"));
+      assertThat(types.getFirst()).isEqualTo(element.get("Type"));
     });
   }
 

@@ -1,13 +1,13 @@
 package tech.jhipster.lite.module.domain.file;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import tech.jhipster.lite.common.domain.JHipsterCollections;
-import tech.jhipster.lite.error.domain.Assert;
+import java.util.*;
 import tech.jhipster.lite.module.domain.JHipsterModule.JHipsterModuleBuilder;
+import tech.jhipster.lite.module.domain.JHipsterModuleUpgrade;
 import tech.jhipster.lite.module.domain.JHipsterProjectFilePath;
+import tech.jhipster.lite.shared.collection.domain.JHipsterCollections;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterModuleFiles {
+public final class JHipsterModuleFiles {
 
   private final Collection<JHipsterModuleFile> filesToAdd;
   private final JHipsterFilesToDelete filesToDelete;
@@ -19,8 +19,24 @@ public class JHipsterModuleFiles {
     filesToDelete = new JHipsterFilesToDelete(builder.filesToDelete);
   }
 
+  private JHipsterModuleFiles(JHipsterModuleFiles source, JHipsterModuleUpgrade upgrade) {
+    Assert.notNull("ignoredFiles", upgrade);
+
+    filesToAdd = buildFilesToAdd(source, upgrade.skippedFiles());
+    filesToDelete = source.filesToDelete.add(upgrade.filesToDelete());
+    filesToMove = source.filesToMove;
+  }
+
+  private List<JHipsterModuleFile> buildFilesToAdd(JHipsterModuleFiles source, JHipsterDestinations skippedFiles) {
+    return source.filesToAdd.stream().filter(file -> skippedFiles.doesNotContain(file.destination())).toList();
+  }
+
   public static JHipsterModuleFilesBuilder builder(JHipsterModuleBuilder module) {
     return new JHipsterModuleFilesBuilder(module);
+  }
+
+  public JHipsterModuleFiles forUpgrade(JHipsterModuleUpgrade upgrade) {
+    return new JHipsterModuleFiles(this, upgrade);
   }
 
   public Collection<JHipsterModuleFile> filesToAdd() {
@@ -35,7 +51,7 @@ public class JHipsterModuleFiles {
     return filesToDelete;
   }
 
-  public static class JHipsterModuleFilesBuilder {
+  public static final class JHipsterModuleFilesBuilder {
 
     private final JHipsterModuleBuilder module;
     private final Collection<JHipsterModuleFile> filesToAdd = new ArrayList<>();
@@ -87,7 +103,7 @@ public class JHipsterModuleFiles {
     }
   }
 
-  public static class JHipsterModuleFileBatchBuilder {
+  public static final class JHipsterModuleFileBatchBuilder {
 
     private final JHipsterSource source;
     private final JHipsterDestination destination;
@@ -105,6 +121,18 @@ public class JHipsterModuleFiles {
 
     public JHipsterModuleFileBatchBuilder addFile(String file) {
       return add(source.file(file), destination.append(file));
+    }
+
+    public JHipsterModuleFileBatchBuilder addExecutable(String file) {
+      files.addExecutable(source.file(file), destination.append(file));
+
+      return this;
+    }
+
+    public JHipsterModuleFileBatchBuilder addExecutableTemplate(String file) {
+      files.addExecutable(source.template(file), destination.append(file));
+
+      return this;
     }
 
     private JHipsterModuleFileBatchBuilder add(JHipsterSource source, JHipsterDestination destination) {

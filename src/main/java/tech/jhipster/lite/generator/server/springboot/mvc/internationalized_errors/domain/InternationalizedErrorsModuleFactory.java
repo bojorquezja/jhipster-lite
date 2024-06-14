@@ -2,17 +2,17 @@ package tech.jhipster.lite.generator.server.springboot.mvc.internationalized_err
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.file.JHipsterDestination;
 import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class InternationalizedErrorsModuleFactory {
 
-  private static final String ERROR = "error";
+  private static final String ERROR = "shared/error";
   private static final String DOMAIN = "domain";
   private static final String INFRASTRUCTURE_PRIMARY = "infrastructure/primary";
 
@@ -38,7 +38,7 @@ public class InternationalizedErrorsModuleFactory {
     JHipsterDestination testPrimaryDestination = testErrorDestination.append(INFRASTRUCTURE_PRIMARY);
     JHipsterDestination testDomainDestination = testErrorDestination.append(DOMAIN);
 
-    JHipsterDestination errorGeneratorDestination = toSrcTestJava().append(packagePath).append("error_generator");
+    JHipsterDestination errorGeneratorDestination = toSrcTestJava().append(packagePath).append("shared/error_generator");
     JHipsterDestination errorGeneratorPrimaryDestination = errorGeneratorDestination.append(INFRASTRUCTURE_PRIMARY);
 
     //@formatter:off
@@ -81,8 +81,8 @@ public class InternationalizedErrorsModuleFactory {
           MESSAGES_DESTINATION.append("errors").append(baseFileName + "-errors-messages_fr.properties")
         )
         .add(
-          TEST_SOURCE.template("ApplicationErrorsHandlerIntTest.java"),
-          testPrimaryDestination.append(baseName + "ErrorsHandlerIntTest.java")
+          TEST_SOURCE.template("ApplicationErrorsHandlerIT.java"),
+          testPrimaryDestination.append(baseName + "ErrorsHandlerIT.java")
         )
         .add(TEST_SOURCE.template("ApplicationErrorsHandlerTest.java"), testPrimaryDestination.append(baseName + "ErrorsHandlerTest.java"))
         .add(TEST_SOURCE.template("ApplicationErrorsMessagesTest.java"), testPrimaryDestination.append(baseName + "ErrorsMessagesTest.java"))
@@ -90,7 +90,7 @@ public class InternationalizedErrorsModuleFactory {
         .batch(TEST_SOURCE, testPrimaryDestination)
           .addTemplate("ArgumentsReplacerTest.java")
           .addTemplate("AssertionErrorMessagesTest.java")
-          .addTemplate("AssertionErrorsHandlerIntTest.java")
+          .addTemplate("AssertionErrorsHandlerIT.java")
           .addTemplate("AssertionErrorsHandlerTest.java")
           .and()
         .add(TEST_SOURCE.template("ApplicationExceptionTest.java"), testDomainDestination.append(baseName + "ExceptionTest.java"))

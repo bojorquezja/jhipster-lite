@@ -13,11 +13,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterFeatureSlug;
 import tech.jhipster.lite.module.domain.JHipsterSlug;
 import tech.jhipster.lite.module.domain.resource.JHipsterModuleResource;
 import tech.jhipster.lite.module.domain.resource.JHipsterModulesResources;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public record JHipsterLandscapeLevels(Collection<JHipsterLandscapeLevel> levels) {
   public JHipsterLandscapeLevels(Collection<JHipsterLandscapeLevel> levels) {
@@ -72,8 +72,7 @@ public record JHipsterLandscapeLevels(Collection<JHipsterLandscapeLevel> levels)
     }
 
     private static JHipsterLandscapeModule landscapeModule(JHipsterModuleResource resource) {
-      return JHipsterLandscapeModule
-        .builder()
+      return JHipsterLandscapeModule.builder()
         .module(resource.slug())
         .operation(resource.apiDoc().operation())
         .propertiesDefinition(resource.propertiesDefinition())
@@ -130,7 +129,7 @@ public record JHipsterLandscapeLevels(Collection<JHipsterLandscapeLevel> levels)
       List<JHipsterLandscapeElement> levelElements = levelElements(withAllKnownDependencies(knownSlugs));
 
       if (levelElements.isEmpty()) {
-        throw InvalidLandscapeException.unknownDepdencency(
+        throw InvalidLandscapeException.unknownDependency(
           knownSlugs,
           elementsToDispatch.stream().map(JHipsterLandscapeElement::slug).toList()
         );
@@ -146,12 +145,7 @@ public record JHipsterLandscapeLevels(Collection<JHipsterLandscapeLevel> levels)
     private Predicate<JHipsterLandscapeElement> withAllKnownDependencies(Set<JHipsterSlug> knownSlugs) {
       return element ->
         knownSlugs.containsAll(
-          element
-            .dependencies()
-            .stream()
-            .flatMap(dependencies -> dependencies.get().stream())
-            .map(JHipsterLandscapeDependency::slug)
-            .toList()
+          element.dependencies().stream().flatMap(JHipsterLandscapeDependencies::stream).map(JHipsterLandscapeDependency::slug).toList()
         );
     }
 

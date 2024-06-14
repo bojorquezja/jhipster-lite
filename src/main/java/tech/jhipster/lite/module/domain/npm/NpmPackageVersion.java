@@ -1,6 +1,6 @@
 package tech.jhipster.lite.module.domain.npm;
 
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public record NpmPackageVersion(String version) {
   public NpmPackageVersion {
@@ -9,5 +9,9 @@ public record NpmPackageVersion(String version) {
 
   public String get() {
     return version();
+  }
+
+  public String majorVersion() {
+    return version().split("\\.")[0];
   }
 }

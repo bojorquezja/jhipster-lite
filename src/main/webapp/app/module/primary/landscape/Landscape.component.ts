@@ -4,6 +4,7 @@ import { ModulesRepository } from '@/module/domain/ModulesRepository';
 import { defineComponent, inject, nextTick, onBeforeUnmount, onMounted, Ref, ref } from 'vue';
 import { LandscapeModuleVue } from '../landscape-module';
 import { LandscapeLoaderVue } from '../landscape-loader';
+import { LandscapeMiniMapVue } from '../landscape-minimap';
 import { buildConnector, LandscapeConnector } from './LandscapeConnector';
 import { DisplayMode } from './DisplayMode';
 import { emptyLandscapeSize, LandscapeConnectorsSize } from './LandscapeConnectorsSize';
@@ -28,10 +29,12 @@ import { LandscapeFeatureSlug } from '@/module/domain/landscape/LandscapeFeature
 import { BodyCursorUpdater } from '@/common/primary/cursor/BodyCursorUpdater';
 import { LandscapeScroller } from '@/module/primary/landscape/LandscapeScroller';
 import { ModuleParametersRepository } from '@/module/domain/ModuleParametersRepository';
+import { LandscapeNavigation } from './LandscapeNavigation';
+import { AnchorPointState } from '@/module/domain/AnchorPointState';
 
 export default defineComponent({
   name: 'LandscapeVue',
-  components: { LandscapeModuleVue, ModulePropertiesFormVue, ProjectActionsVue, IconVue, LandscapeLoaderVue },
+  components: { LandscapeModuleVue, ModulePropertiesFormVue, ProjectActionsVue, IconVue, LandscapeLoaderVue, LandscapeMiniMapVue },
   setup() {
     const applicationListener = inject('applicationListener') as ApplicationListener;
     const alertBus = inject('alertBus') as AlertBus;
@@ -45,16 +48,20 @@ export default defineComponent({
     const landscape = ref(Loader.loading<Landscape>());
     const levels = ref(Loader.loading<LandscapeLevel[]>());
 
+    const canLoadMiniMap = ref(false);
+
     const landscapeContainer = ref<HTMLElement>(document.createElement('div'));
     const landscapeConnectors = ref<LandscapeConnector[]>([]);
     const landscapeSize = ref<LandscapeConnectorsSize>(emptyLandscapeSize());
     const landscapeElements = ref(new Map<string, HTMLElement>());
+    const landscapeNavigation = ref(Loader.loading<LandscapeNavigation>());
 
     const emphasizedModule = ref<ModuleSlug>();
 
     const moduleParameters = inject('moduleParameters') as ModuleParametersRepository;
     const folderPath = ref(moduleParameters.getCurrentFolderPath());
     const moduleParametersValues = ref(moduleParameters.get(folderPath.value));
+    const anchorPointModulesMap = ref(new Map<string, AnchorPointState>());
 
     let commitModule = true;
 
@@ -113,17 +120,89 @@ export default defineComponent({
       landscapeScroller.scroll(landscapeContainer.value, scrollX, scrollY);
     };
 
+    const landscapeNavigationValue = (): LandscapeNavigation => {
+      return landscapeNavigation.value.value();
+    };
+
     const loadLandscape = async (response: Landscape): Promise<void> => {
       landscape.value.loaded(response);
       levels.value.loaded(response.standaloneLevels());
 
       await nextTick().then(updateConnectors);
-
+      landscapeNavigation.value.loaded(new LandscapeNavigation(landscapeElements.value, levels.value.value()));
+      document.addEventListener('keydown', handleKeyboard);
       applicationListener.addEventListener('resize', updateConnectors);
+
+      canLoadMiniMap.value = true;
+      loadAnchorPointModulesMap();
+    };
+
+    const loadAnchorPointModulesMap = (): void => {
+      landscapeConnectors.value.forEach(e => {
+        const startingElementSlug = e.startingElement.get();
+        const endingElementSlug = e.endingElement.get();
+
+        const startingElementSlugExists = anchorPointModulesMap.value.get(startingElementSlug);
+        if (!startingElementSlugExists) {
+          anchorPointModulesMap.value.set(startingElementSlug, { atStart: true, atEnd: false });
+        } else {
+          anchorPointModulesMap.value.set(startingElementSlug, { atStart: true, atEnd: startingElementSlugExists.atEnd });
+        }
+
+        const endingElementSlugExists = anchorPointModulesMap.value.get(endingElementSlug);
+        if (!endingElementSlugExists) {
+          anchorPointModulesMap.value.set(endingElementSlug, { atStart: false, atEnd: true });
+        } else {
+          anchorPointModulesMap.value.set(endingElementSlug, { atStart: endingElementSlugExists.atStart, atEnd: true });
+        }
+      });
+    };
+
+    type Navigation = 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown' | 'Space';
+    type NavigationAction = {
+      [key in Navigation]: keyof LandscapeNavigation;
+    };
+
+    const isNavigation = (code: string): code is Navigation => {
+      return ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].includes(code);
+    };
+
+    const prepareNavigationActions = (ctrl: boolean): NavigationAction => {
+      return {
+        ArrowUp: 'goUp',
+        ArrowDown: 'goDown',
+        ArrowLeft: ctrl ? 'goToDependency' : 'goLeft',
+        ArrowRight: ctrl ? 'goToDependent' : 'goRight',
+        Space: 'getSlug',
+      };
+    };
+
+    const handleNavigation = (code: Navigation, ctrl: boolean): void => {
+      const navigationActions = prepareNavigationActions(ctrl);
+
+      const module = landscapeNavigationValue()[navigationActions[code]]();
+      if (module) {
+        toggleModule(module);
+      }
+    };
+
+    const handleKeyboard = (event: Event): void => {
+      // Disable arrows action in input field
+      if (isInputActiveElement()) {
+        return;
+      }
+
+      const keyboardEvent = event as KeyboardEvent;
+
+      if (isNavigation(keyboardEvent.code)) {
+        handleNavigation(keyboardEvent.code, keyboardEvent.ctrlKey);
+        emphasizeModule(landscapeNavigationValue().getSlug());
+      }
     };
 
     onBeforeUnmount(() => {
       applicationListener.removeEventListener('resize', updateConnectors);
+      document.removeEventListener('keydown', handleKeyboard);
     });
 
     const updateConnectors = (): void => {
@@ -145,18 +224,18 @@ export default defineComponent({
           dependantElementSlug: module.slug(),
           dependencyElement: landscapeElements.value.get(dependency.get())!,
           dependencyElementSlug: dependency,
-        })
+        }),
       );
     };
 
     const buildConnectorsSize = (): LandscapeConnectorsSize => ({
       width: Math.max.apply(
         null,
-        landscapeConnectors.value.flatMap(connector => connector.positions).map(position => position.x)
+        landscapeConnectors.value.flatMap(connector => connector.positions).map(position => position.x),
       ),
       height: Math.max.apply(
         null,
-        landscapeConnectors.value.flatMap(connector => connector.positions).map(position => position.y)
+        landscapeConnectors.value.flatMap(connector => connector.positions).map(position => position.y),
       ),
     });
 
@@ -183,6 +262,27 @@ export default defineComponent({
       await nextTick().then(updateConnectors);
     };
 
+    const anchorPointClass = (module: LandscapeElementId): string => {
+      if (module instanceof LandscapeFeatureSlug) {
+        return '';
+      }
+
+      let className = '';
+
+      const anchorPointState = anchorPointModulesMap.value.get(module.get());
+      if (anchorPointState) {
+        if (anchorPointState.atStart) {
+          className += ' -left-anchor-point';
+        }
+
+        if (anchorPointState.atEnd) {
+          className += ' -right-anchor-point';
+        }
+      }
+
+      return className;
+    };
+
     const elementFlavor = (module: LandscapeElementId): string => {
       return (
         operationInProgressClass() +
@@ -190,7 +290,8 @@ export default defineComponent({
         unselectionHighlightClass(module) +
         selectionClass(module) +
         applicationClass(module) +
-        flavorClass()
+        flavorClass() +
+        anchorPointClass(module)
       );
     };
 
@@ -288,6 +389,10 @@ export default defineComponent({
     };
 
     const toggleModule = (module: ModuleSlug): void => {
+      // Remove the focus on input field
+      if (isInputActiveElement()) {
+        (document?.activeElement as HTMLElement).blur();
+      }
       landscape.value.loaded(landscapeValue().toggle(module));
     };
 
@@ -333,7 +438,7 @@ export default defineComponent({
 
     const missingMandatoryProperty = () => {
       return selectedModulesProperties().some(
-        property => property.mandatory && empty(moduleParametersValues.value.get(property.key)) && empty(property.defaultValue)
+        property => property.mandatory && empty(moduleParametersValues.value.get(property.key)) && empty(property.defaultValue),
       );
     };
 
@@ -392,6 +497,10 @@ export default defineComponent({
       applyModules(landscapeValue().selectedModules());
     };
 
+    const applyModule = (module: ModuleSlug): void => {
+      applyModules([module]);
+    };
+
     const applyModules = (modulesToApply: ModuleSlug[]): void => {
       operationStarted();
 
@@ -437,6 +546,10 @@ export default defineComponent({
       return landscapeValue().isApplied(new ModuleSlug(moduleId));
     };
 
+    const isInputActiveElement = (): boolean => {
+      return document?.activeElement?.tagName === 'INPUT';
+    };
+
     return {
       levels,
       isFeature,
@@ -464,6 +577,7 @@ export default defineComponent({
       projectFolderUpdated,
       updateProperty,
       deleteProperty,
+      applyModule,
       applyAllModules,
       applyNewModules,
       operationStarted,
@@ -474,6 +588,7 @@ export default defineComponent({
       startGrabbing,
       stopGrabbing,
       grabbing,
+      canLoadMiniMap,
     };
   },
 });

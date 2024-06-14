@@ -1,10 +1,13 @@
 package tech.jhipster.lite.module.domain.resource;
 
-import tech.jhipster.lite.error.domain.Assert;
+import static org.apache.commons.lang3.builder.ToStringStyle.*;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import tech.jhipster.lite.module.domain.JHipsterModuleFactory;
 import tech.jhipster.lite.module.domain.JHipsterModuleSlug;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterModuleResource {
+public final class JHipsterModuleResource {
 
   private final JHipsterModuleSlug slug;
   private final JHipsterModulePropertiesDefinition propertiesDefinition;
@@ -65,7 +68,18 @@ public class JHipsterModuleResource {
     return propertiesDefinition;
   }
 
-  public static class JHipsterModuleResourceBuilder
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this, SHORT_PREFIX_STYLE)
+      .append("slug", slug)
+      .append("apiDoc", apiDoc)
+      .append("tags", tags)
+      .append("organization", organization)
+      .append("propertiesDefinition", propertiesDefinition)
+      .build();
+  }
+
+  private static final class JHipsterModuleResourceBuilder
     implements
       JHipsterModuleResourceSlugBuilder,
       JHipsterModuleResourcePropertiesDefinitionBuilder,
@@ -81,8 +95,6 @@ public class JHipsterModuleResource {
 
     private JHipsterModuleTags tags;
     private JHipsterModuleOrganization organization;
-
-    private JHipsterModuleResourceBuilder() {}
 
     @Override
     public JHipsterModuleResourcePropertiesDefinitionBuilder slug(JHipsterModuleSlugFactory slug) {

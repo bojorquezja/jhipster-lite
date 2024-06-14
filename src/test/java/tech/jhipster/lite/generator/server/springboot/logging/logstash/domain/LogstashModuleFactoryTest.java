@@ -16,8 +16,7 @@ class LogstashModuleFactoryTest {
 
   @Test
   void shouldCreateModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .build();
 
@@ -27,33 +26,41 @@ class LogstashModuleFactoryTest {
       .hasFile("pom.xml")
       .containing(
         """
-                <dependency>
-                  <groupId>net.logstash.logback</groupId>
-                  <artifactId>logstash-logback-encoder</artifactId>
-                  <version>${logstash-logback-encoder.version}</version>
-                </dependency>
-            """
+            <dependency>
+              <groupId>net.logstash.logback</groupId>
+              <artifactId>logstash-logback-encoder</artifactId>
+              <version>${logstash-logback-encoder.version}</version>
+            </dependency>
+        """
       )
       .and()
       .hasPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/secondary/logstash",
+        "src/main/java/com/jhipster/test/wire/logstash/infrastructure/secondary",
         "LogstashTcpConfiguration.java",
         "LogstashTcpLifeCycle.java",
         "LogstashTcpProperties.java"
       )
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/technical/infrastructure/secondary/logstash",
+        "src/test/java/com/jhipster/test/wire/logstash/infrastructure/secondary",
         "LogstashTcpConfigurationIT.java",
         "LogstashTcpConfigurationTest.java",
         "LogstashTcpLifeCycleTest.java",
         "LogstashTcpPropertiesTest.java"
       )
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("application.logging.logstash.tcp.enabled=false")
-      .containing("application.logging.logstash.tcp.host=localhost")
-      .containing("application.logging.logstash.tcp.port=5000")
-      .containing("application.logging.logstash.tcp.ring-buffer-size=8192")
-      .containing("application.logging.logstash.tcp.shutdown_grace_period=PT1M")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        application:
+          logging:
+            logstash:
+              tcp:
+                enabled: false
+                host: localhost
+                port: 5000
+                ring-buffer-size: 8192
+                shutdown_grace_period: PT1M
+        """
+      )
       .and()
       .hasFile("src/test/resources/logback.xml")
       .containing("<logger name=\"net.logstash.logback\" level=\"ERROR\" />")

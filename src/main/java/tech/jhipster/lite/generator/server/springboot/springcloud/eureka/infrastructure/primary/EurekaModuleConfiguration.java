@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.server.springboot.springcloud.eureka.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +14,7 @@ class EurekaModuleConfiguration {
 
   @Bean
   JHipsterModuleResource eurekaModule(EurekaApplicationService eureka) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(EUREKA_CLIENT)
       .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addProjectBaseName().addIndentation().build())
       .apiDoc("Spring Boot - Spring Cloud", "Add Spring Cloud Eureka Client")

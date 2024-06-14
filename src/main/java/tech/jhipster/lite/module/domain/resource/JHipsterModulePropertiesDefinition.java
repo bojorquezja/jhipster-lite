@@ -1,5 +1,6 @@
 package tech.jhipster.lite.module.domain.resource;
 
+import static org.apache.commons.lang3.builder.ToStringStyle.*;
 import static tech.jhipster.lite.module.domain.resource.JHipsterModulePropertyDefinition.*;
 
 import java.util.ArrayList;
@@ -9,15 +10,16 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Stream;
-import tech.jhipster.lite.error.domain.Assert;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterModulePropertiesDefinition {
-
-  private static final Comparator<JHipsterModulePropertyDefinition> DEFINITION_COMPARATOR = Comparator
-    .comparing(JHipsterModulePropertyDefinition::order)
-    .thenComparing(definition -> definition.key().get());
+public final class JHipsterModulePropertiesDefinition {
 
   public static final JHipsterModulePropertiesDefinition EMPTY = builder().build();
+
+  private static final Comparator<JHipsterModulePropertyDefinition> DEFINITION_COMPARATOR = Comparator.comparing(
+    JHipsterModulePropertyDefinition::order
+  ).thenComparing(definition -> definition.key().get());
 
   private final Set<JHipsterModulePropertyDefinition> definitions;
 
@@ -44,7 +46,12 @@ public class JHipsterModulePropertiesDefinition {
     return definitions.stream();
   }
 
-  public static class JHipsterModulePropertiesDefinitionBuilder {
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this, SHORT_PREFIX_STYLE).append("definitions", definitions).build();
+  }
+
+  public static final class JHipsterModulePropertiesDefinitionBuilder {
 
     private final Collection<JHipsterModulePropertyDefinition> definitions = new ArrayList<>();
 
@@ -68,6 +75,10 @@ public class JHipsterModulePropertiesDefinition {
 
     public JHipsterModulePropertiesDefinitionBuilder addIndentation() {
       return add(indentationProperty());
+    }
+
+    public JHipsterModulePropertiesDefinitionBuilder addSpringConfigurationFormat() {
+      return add(springConfigurationFormatProperty());
     }
 
     public JHipsterModulePropertiesDefinitionBuilder addEndOfLine() {

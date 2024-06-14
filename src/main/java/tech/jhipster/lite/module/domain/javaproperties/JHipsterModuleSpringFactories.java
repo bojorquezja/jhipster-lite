@@ -1,11 +1,11 @@
 package tech.jhipster.lite.module.domain.javaproperties;
 
 import java.util.*;
-import tech.jhipster.lite.common.domain.JHipsterCollections;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule.JHipsterModuleBuilder;
+import tech.jhipster.lite.shared.collection.domain.JHipsterCollections;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterModuleSpringFactories {
+public final class JHipsterModuleSpringFactories {
 
   private final Map<PropertyKey, PropertyValue> factories;
 
@@ -21,7 +21,7 @@ public class JHipsterModuleSpringFactories {
     return factories;
   }
 
-  public static class JHipsterModuleSpringFactoriesBuilder {
+  public static final class JHipsterModuleSpringFactoriesBuilder {
 
     private final JHipsterModuleBuilder module;
     private final Map<PropertyKey, PropertyValue> factories = new HashMap<>();

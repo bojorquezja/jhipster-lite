@@ -1,12 +1,13 @@
 package tech.jhipster.lite.module.domain.javadependency;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.javabuild.VersionSlug;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class ProjectJavaDependenciesVersions {
 
@@ -30,5 +31,14 @@ public class ProjectJavaDependenciesVersions {
     Assert.notNull("slug", slug);
 
     return Optional.ofNullable(versions.get(slug.propertyName()));
+  }
+
+  public ProjectJavaDependenciesVersions merge(ProjectJavaDependenciesVersions other) {
+    Assert.notNull("other", other);
+
+    Collection<JavaDependencyVersion> mergedVersions = new ArrayList<>(other.versions.values());
+    mergedVersions.addAll(versions.values());
+
+    return new ProjectJavaDependenciesVersions(mergedVersions);
   }
 }

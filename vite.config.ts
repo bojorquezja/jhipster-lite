@@ -30,6 +30,11 @@ export default defineConfig({
         changeOrigin: true,
         target: 'http://localhost:7471',
       },
+      '/management': {
+        ws: true,
+        changeOrigin: true,
+        target: 'http://localhost:7471',
+      },
       '/style': {
         ws: true,
         changeOrigin: true,
@@ -47,8 +52,6 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         additionalData: `
-          @import "@/assets/global.scss";
-          @import "@/assets/side-form.scss";
           @import "${path.resolve('node_modules/placeholder-loading/dist/css/placeholder-loading.min.css')}";`,
       },
     },

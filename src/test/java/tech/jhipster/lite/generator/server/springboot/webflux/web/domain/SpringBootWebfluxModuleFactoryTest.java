@@ -16,8 +16,7 @@ class SpringBootWebfluxModuleFactoryTest {
 
   @Test
   void shouldBuildWebfluxNettyModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .put("serverPort", 9000)
       .build();
@@ -52,22 +51,25 @@ class SpringBootWebfluxModuleFactoryTest {
         """
       )
       .and()
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("server.port=9000")
-      .containing("application.exception.details=false")
-      .containing("application.exception.package=org.,java.,net.,jakarta.,com.,io.,de.,com.jhipster.test")
-      .and()
-      .hasFile("src/test/resources/config/application.properties")
-      .containing("server.port=0")
-      .containing("application.exception.package=org.,java.")
-      .and()
-      .hasPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/primary/exception/",
-        "HeaderUtil.java",
-        "FieldErrorDTO.java"
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        server:
+          port: 9000
+        """
       )
+      .and()
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        server:
+          port: 0
+        """
+      )
+      .and()
+      .hasPrefixedFiles("src/main/java/com/jhipster/test/shared/error/infrastructure/primary", "HeaderUtil.java", "FieldErrorDTO.java")
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/technical/infrastructure/primary/exception/",
+        "src/test/java/com/jhipster/test/shared/error/infrastructure/primary",
         "HeaderUtilTest.java",
         "FieldErrorDTOTest.java"
       )

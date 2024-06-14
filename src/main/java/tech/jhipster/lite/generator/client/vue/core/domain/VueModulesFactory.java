@@ -1,14 +1,15 @@
 package tech.jhipster.lite.generator.client.vue.core.domain;
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
-import static tech.jhipster.lite.module.domain.packagejson.VersionSource.*;
+import static tech.jhipster.lite.module.domain.packagejson.VersionSource.COMMON;
+import static tech.jhipster.lite.module.domain.packagejson.VersionSource.VUE;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.generator.client.common.domain.ClientsModulesFactory;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.file.JHipsterDestination;
 import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class VueModulesFactory {
 
@@ -18,7 +19,7 @@ public class VueModulesFactory {
   private static final JHipsterSource IMAGE_SOURCE = SOURCE.append("webapp/content/images");
   private static final JHipsterSource COMMON_PRIMARY_SOURCE = SOURCE.append("webapp/app/common/primary");
   private static final JHipsterSource COMMON_PRIMARY_TEST_SOURCE = SOURCE.append("test/spec/common/primary");
-  private static final JHipsterSource COMMON_ESLINT = from("client/common/eslint");
+  private static final JHipsterSource SOURCE_COMMON = from("client/common");
 
   private static final JHipsterDestination MAIN_DESTINATION = to("src/main/webapp/app");
   private static final JHipsterDestination TEST_DESTINATION = to("src/test/javascript/spec");
@@ -32,7 +33,8 @@ public class VueModulesFactory {
     import { createPinia } from 'pinia';
     import piniaPersist from 'pinia-plugin-persist';
     """;
-  private static final String PINIA_PROVIDER = """
+  private static final String PINIA_PROVIDER =
+    """
     const pinia = createPinia();
     pinia.use(piniaPersist);
     app.use(pinia);
@@ -43,42 +45,48 @@ public class VueModulesFactory {
     return ClientsModulesFactory.clientModuleBuilder(properties)
       .documentation(documentationTitle("Vue"), DOCUMENTATION_SOURCE.file("vue.md"))
       .packageJson()
+        .addType("module")
         .addDependency(packageName("vue"), VUE)
         .addDependency(packageName("axios"), VUE)
         .addDependency(packageName("vue-router"), VUE)
-        .addDevDependency(packageName("@rushstack/eslint-patch"), VUE)
-        .addDevDependency(packageName("@typescript-eslint/parser"), VUE)
+        .addDevDependency(packageName("@typescript-eslint/parser"), COMMON)
         .addDevDependency(packageName("@vitejs/plugin-vue"), VUE)
         .addDevDependency(packageName("@vue/eslint-config-typescript"), VUE)
         .addDevDependency(packageName("@vue/eslint-config-prettier"), VUE)
         .addDevDependency(packageName("@vue/test-utils"), VUE)
-        .addDevDependency(packageName("@vitest/coverage-istanbul"), VUE)
-        .addDevDependency(packageName("eslint"), VUE)
+        .addDevDependency(packageName("@vitest/coverage-istanbul"), COMMON)
+        .addDevDependency(packageName("eslint"), COMMON)
         .addDevDependency(packageName("eslint-plugin-vue"), VUE)
-        .addDevDependency(packageName("jsdom"), VUE)
-        .addDevDependency(packageName("typescript"), VUE)
-        .addDevDependency(packageName("vite"), VUE)
-        .addDevDependency(packageName("vitest"), VUE)
-        .addDevDependency(packageName("vitest-sonar-reporter"), VUE)
+        .addDevDependency(packageName("jsdom"), COMMON)
+        .addDevDependency(packageName("typescript"), COMMON)
+        .addDevDependency(packageName("vite"), COMMON)
+        .addDevDependency(packageName("vitest"), COMMON)
+        .addDevDependency(packageName("vitest-sonar-reporter"), COMMON)
         .addDevDependency(packageName("vue-tsc"), VUE)
         .addDevDependency(packageName("@types/sinon"), VUE)
         .addDevDependency(packageName("sinon"), VUE)
         .addScript(scriptKey("build"), scriptCommand("vue-tsc -p tsconfig.build.json --noEmit && vite build --emptyOutDir"))
         .addScript(scriptKey("dev"), scriptCommand("vite"))
-        .addScript(scriptKey("lint"), scriptCommand("eslint --ext .js,.ts,.vue src"))
+        .addScript(scriptKey("lint"), scriptCommand("eslint --ext .js,.ts,.vue src/main/webapp/app/**/*"))
         .addScript(scriptKey("preview"), scriptCommand("vite preview"))
         .addScript(scriptKey("start"), scriptCommand("vite"))
-        .addScript(scriptKey("test"), scriptCommand("vitest run --coverage"))
+        .addScript(scriptKey("test"), scriptCommand("npm run test:watch"))
+        .addScript(scriptKey("test:coverage"), scriptCommand("vitest run --coverage"))
         .addScript(scriptKey("test:watch"), scriptCommand("vitest --"))
         .and()
       .files()
-        .add(SOURCE.file(".eslintrc.js"), to(".eslintrc.js"))
+        .add(SOURCE.file(".eslintrc.cjs"), to(".eslintrc.cjs"))
         .add(SOURCE.file("tsconfig.json"), to("tsconfig.json"))
         .add(SOURCE.file("tsconfig.build.json"), to("tsconfig.build.json"))
-        .add(SOURCE.file("vite.config.ts"), to("vite.config.ts"))
-        .add(SOURCE.file("vitest.config.ts"), to("vitest.config.ts"))
         .add(SOURCE.template("webapp/app/http/AxiosHttp.ts.mustache"), MAIN_DESTINATION.append("http/AxiosHttp.ts"))
-        .add(COMMON_ESLINT.file(".eslintignore"), to(".eslintignore"))
+        .batch(SOURCE, to("."))
+          .addTemplate("vite.config.ts")
+          .addTemplate("vitest.config.ts")
+          .and()
+        .batch(SOURCE_COMMON, to("."))
+          .addFile(".eslintignore")
+          .addFile(".npmrc")
+          .and()
         .batch(SOURCE.file("test/spec/http"), to("src/test/javascript/spec/http"))
           .addTemplate("AxiosHttp.spec.ts")
           .addTemplate("AxiosHttpStub.ts")

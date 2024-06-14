@@ -16,8 +16,7 @@ class SpringBootMvcsModulesFactoryTest {
 
   @Test
   void shouldBuildTomcatMvcModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .put("serverPort", 9000)
       .build();
@@ -54,8 +53,7 @@ class SpringBootMvcsModulesFactoryTest {
 
   @Test
   void shouldBuildUndertowModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .put("serverPort", 9000)
       .build();
@@ -100,30 +98,41 @@ class SpringBootMvcsModulesFactoryTest {
       .containing("- [Local server](http://localhost:9000)")
       .and()
       .hasFiles("documentation/cors-configuration.md")
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("server.port=9000")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        server:
+          port: 9000
+        """
+      )
       .and()
       .hasFile("src/main/resources/public/error/404.html")
       .and()
-      .hasFile("src/test/resources/config/application.properties")
-      .containing("server.port=0")
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        server:
+          port: 0
+        """
+      )
       .and()
       .hasPrefixedFiles(
-        "src/main/java/com/jhipster/test/security/infrastructure/primary",
+        "src/main/java/com/jhipster/test/wire/security/infrastructure/primary",
         "CorsFilterConfiguration.java",
         "CorsProperties.java"
       )
+      .hasFiles("src/main/java/com/jhipster/test/wire/security/package-info.java")
       .hasPrefixedFiles("src/test/java/com/jhipster/test", "BeanValidationAssertions.java", "BeanValidationTest.java")
-      .hasFiles("src/test/java/com/jhipster/test/security/infrastructure/primary/CorsFilterConfigurationIT.java")
+      .hasFiles("src/test/java/com/jhipster/test/wire/security/infrastructure/primary/CorsFilterConfigurationIT.java")
       .hasFiles("src/test/java/com/jhipster/test/JsonHelper.java")
-      .hasFiles("src/main/java/com/jhipster/test/error/infrastructure/primary/BeanValidationErrorsHandler.java")
+      .hasFiles("src/main/java/com/jhipster/test/shared/error/infrastructure/primary/BeanValidationErrorsHandler.java")
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/error/infrastructure/primary",
+        "src/test/java/com/jhipster/test/shared/error/infrastructure/primary",
         "BeanValidationErrorsHandlerTest.java",
-        "BeanValidationErrorsHandlerIntTest.java"
+        "BeanValidationErrorsHandlerIT.java"
       )
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/error_generator/infrastructure/primary",
+        "src/test/java/com/jhipster/test/shared/error_generator/infrastructure/primary",
         "BeanValidationErrorsResource.java",
         "RestMandatoryParameter.java"
       )

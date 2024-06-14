@@ -1,7 +1,7 @@
 package tech.jhipster.lite.generator.client.svelte.core.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteFeatureSlug.*;
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +14,7 @@ public class SvelteModuleConfiguration {
 
   @Bean
   JHipsterModuleResource svelteModule(SvelteApplicationService svelteApplicationService) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SVELTE_CORE)
       .withoutProperties()
       .apiDoc("Svelte", "Add Svelte")

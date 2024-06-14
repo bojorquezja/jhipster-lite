@@ -2,8 +2,8 @@ package tech.jhipster.lite.generator.server.springboot.cache.caffeine.infrastruc
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import tech.jhipster.lite.generator.JHLiteModuleSlug;
 import tech.jhipster.lite.generator.server.springboot.cache.caffeine.application.CaffeineCacheApplicationService;
+import tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug;
 import tech.jhipster.lite.module.domain.resource.JHipsterModuleOrganization;
 import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertiesDefinition;
 import tech.jhipster.lite.module.domain.resource.JHipsterModuleResource;
@@ -13,8 +13,7 @@ class CaffeineCacheModuleConfiguration {
 
   @Bean
   JHipsterModuleResource caffeineCacheModule(CaffeineCacheApplicationService caffeineCaches) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(JHLiteModuleSlug.CAFFEINE_CACHE)
       .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().build())
       .apiDoc("Spring Boot - Cache", "Add caffeine cache")

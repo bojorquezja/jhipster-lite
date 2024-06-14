@@ -1,7 +1,7 @@
 package tech.jhipster.lite.generator.server.sonarqube.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteFeatureSlug.*;
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,24 +15,34 @@ class SonarQubeModuleConfiguration {
 
   @Bean
   JHipsterModuleResource sonarBackendModule(SonarQubeApplicationService sonar) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SONAR_QUBE_JAVA_BACKEND)
       .propertiesDefinition(propertiesDefinition())
       .apiDoc("Sonar", "Add Sonar configuration for Java Backend to inspect code quality")
-      .organization(JHipsterModuleOrganization.builder().addDependency(JAVA_BUILD_TOOL).build())
+      .organization(
+        JHipsterModuleOrganization.builder()
+          .feature(SONAR_QUBE_JAVA)
+          .addDependency(JAVA_BUILD_TOOL)
+          .addDependency(CODE_COVERAGE_JAVA)
+          .build()
+      )
       .tags("server", "sonar")
       .factory(sonar::buildBackendModule);
   }
 
   @Bean
   JHipsterModuleResource sonarBackendFrontendModule(SonarQubeApplicationService sonar) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SONAR_QUBE_JAVA_BACKEND_AND_FRONTEND)
       .propertiesDefinition(propertiesDefinition())
       .apiDoc("Sonar", "Add Sonar configuration for Java Backend and Frontend to inspect code quality")
-      .organization(JHipsterModuleOrganization.builder().addDependency(JAVA_BUILD_TOOL).build())
+      .organization(
+        JHipsterModuleOrganization.builder()
+          .feature(SONAR_QUBE_JAVA)
+          .addDependency(JAVA_BUILD_TOOL)
+          .addDependency(CODE_COVERAGE_JAVA)
+          .build()
+      )
       .tags("server", "sonar")
       .factory(sonar::buildBackendFrontendModule);
   }

@@ -15,22 +15,21 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tech.jhipster.lite.Logs;
 import tech.jhipster.lite.LogsSpy;
+import tech.jhipster.lite.LogsSpyExtension;
 import tech.jhipster.lite.TestFileUtils;
 import tech.jhipster.lite.UnitTest;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
 
 @UnitTest
-@ExtendWith(LogsSpy.class)
+@ExtendWith(LogsSpyExtension.class)
 class JGitGitRepositoryTest {
 
   private static final JGitGitRepository git = new JGitGitRepository();
 
-  private final LogsSpy logs;
-
-  public JGitGitRepositoryTest(LogsSpy logs) {
-    this.logs = logs;
-  }
+  @Logs
+  private LogsSpy logs;
 
   @Nested
   @DisplayName("init")
@@ -77,18 +76,19 @@ class JGitGitRepositoryTest {
 
     @Test
     void shouldHandleCommitErrors() {
-      assertThatThrownBy(() -> git.commitAll(new JHipsterProjectFolder(TestFileUtils.tmpDirForTest()), "Add application.properties"))
-        .isExactlyInstanceOf(GitCommitException.class);
+      assertThatThrownBy(
+        () -> git.commitAll(new JHipsterProjectFolder(TestFileUtils.tmpDirForTest()), "Add application.properties")
+      ).isExactlyInstanceOf(GitCommitException.class);
     }
 
     @Test
     void shouldCommitAllFiles() throws IOException {
       Path path = gitInit();
-      Files.copy(Paths.get("src/test/resources/projects/files/application.properties"), path.resolve("application.properties"));
+      Files.copy(Paths.get("src/test/resources/projects/files/dummy.txt"), path.resolve("dummy.txt"));
 
-      git.commitAll(new JHipsterProjectFolder(path.toString()), "Add application.properties");
+      git.commitAll(new JHipsterProjectFolder(path.toString()), "Add dummy.txt");
 
-      assertThat(GitTestUtil.getCommits(path)).contains("Add application.properties");
+      assertThat(GitTestUtil.getCommits(path)).contains("Add dummy.txt");
       assertThat(GitTestUtil.getCurrentBranch(path)).contains("main");
     }
   }

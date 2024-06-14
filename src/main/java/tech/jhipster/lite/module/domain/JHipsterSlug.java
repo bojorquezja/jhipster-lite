@@ -3,8 +3,8 @@ package tech.jhipster.lite.module.domain;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import tech.jhipster.lite.common.domain.Generated;
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 public abstract sealed class JHipsterSlug implements Comparable<JHipsterSlug> permits JHipsterModuleSlug, JHipsterFeatureSlug {
 
@@ -13,21 +13,9 @@ public abstract sealed class JHipsterSlug implements Comparable<JHipsterSlug> pe
   private final String slug;
 
   protected JHipsterSlug(String slug) {
-    Assert.notBlank("slug", slug);
-
-    assertFormat(slug);
+    Assert.field("slug", slug).notBlank().matchesPatternOrThrow(SLUG_FORMAT, () -> new InvalidJHipsterSlugException(slug));
 
     this.slug = slug;
-  }
-
-  private static void assertFormat(String slug) {
-    if (invalidFormat(slug)) {
-      throw new InvalidJHipsterSlugException(slug);
-    }
-  }
-
-  private static boolean invalidFormat(String slug) {
-    return !SLUG_FORMAT.matcher(slug).matches();
   }
 
   public String get() {
@@ -52,13 +40,13 @@ public abstract sealed class JHipsterSlug implements Comparable<JHipsterSlug> pe
   }
 
   @Override
-  @Generated
+  @ExcludeFromGeneratedCodeCoverage
   public int hashCode() {
     return new HashCodeBuilder().append(slug).hashCode();
   }
 
   @Override
-  @Generated
+  @ExcludeFromGeneratedCodeCoverage
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;

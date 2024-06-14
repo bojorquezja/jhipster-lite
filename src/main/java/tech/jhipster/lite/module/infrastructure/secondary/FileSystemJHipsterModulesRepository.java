@@ -3,18 +3,14 @@ package tech.jhipster.lite.module.infrastructure.secondary;
 import java.util.List;
 import java.util.Map;
 import org.springframework.stereotype.Repository;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.module.domain.JHipsterModuleApplied;
-import tech.jhipster.lite.module.domain.JHipsterModuleChanges;
-import tech.jhipster.lite.module.domain.JHipsterModulesRepository;
-import tech.jhipster.lite.module.domain.ProjectFilesReader;
+import tech.jhipster.lite.module.domain.*;
 import tech.jhipster.lite.module.domain.javaproperties.SpringPropertyType;
 import tech.jhipster.lite.module.domain.landscape.JHipsterLandscape;
-import tech.jhipster.lite.module.domain.npm.NpmVersions;
 import tech.jhipster.lite.module.domain.postaction.JHipsterModuleExecutionContext;
 import tech.jhipster.lite.module.domain.resource.JHipsterModulesResources;
 import tech.jhipster.lite.module.infrastructure.secondary.javadependency.FileSystemJavaBuildCommandsHandler;
 import tech.jhipster.lite.project.infrastructure.primary.JavaProjects;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 @Repository
 class FileSystemJHipsterModulesRepository implements JHipsterModulesRepository {
@@ -22,6 +18,49 @@ class FileSystemJHipsterModulesRepository implements JHipsterModulesRepository {
   public static final String DEFAULT_MAIN_FOLDER = "src/main/resources/config/";
   public static final String DEFAULT_TEST_FOLDER = "src/test/resources/config/";
   public static final String TEST_META_INF_FOLDER = "src/test/resources/META-INF/";
+
+  private final JavaProjects projects;
+  private final JHipsterModulesResources resources;
+
+  private final FileSystemJHipsterModuleFiles files;
+  private final FileSystemJavaBuildCommandsHandler javaBuild;
+  private final FileSystemSpringPropertiesCommandsHandler springProperties;
+  private final FileSystemYamlSpringPropertiesCommandsHandler yamlSpringProperties;
+  private final FileSystemYamlSpringCommentsCommandsHandler yamlSpringComments;
+  private final FileSystemSpringCommentsCommandsHandler springComments;
+  private final FileSystemSpringFactoriesCommandsHandler springFactories;
+  private final FileSystemPackageJsonHandler packageJson;
+  private final FileSystemGitIgnoreHandler gitIgnore;
+  private final FileSystemReplacer replacer;
+  private final FileSystemStartupCommandsReadmeCommandsHandler startupCommands;
+  private final JHipsterLandscape landscape;
+
+  public FileSystemJHipsterModulesRepository(
+    JavaProjects projects,
+    JHipsterModulesResources resources,
+    FileSystemJHipsterModuleFiles files,
+    FileSystemReplacer fileReplacer,
+    FileSystemGitIgnoreHandler gitIgnore,
+    FileSystemJavaBuildCommandsHandler javaBuild,
+    FileSystemPackageJsonHandler packageJson,
+    FileSystemStartupCommandsReadmeCommandsHandler startupCommands
+  ) {
+    this.projects = projects;
+    this.resources = resources;
+    this.landscape = JHipsterLandscape.from(resources);
+
+    this.files = files;
+    this.javaBuild = javaBuild;
+    this.springProperties = new FileSystemSpringPropertiesCommandsHandler();
+    this.springComments = new FileSystemSpringCommentsCommandsHandler();
+    this.yamlSpringProperties = new FileSystemYamlSpringPropertiesCommandsHandler();
+    this.yamlSpringComments = new FileSystemYamlSpringCommentsCommandsHandler();
+    this.springFactories = new FileSystemSpringFactoriesCommandsHandler();
+    this.gitIgnore = gitIgnore;
+    this.packageJson = packageJson;
+    this.replacer = fileReplacer;
+    this.startupCommands = startupCommands;
+  }
 
   public static Map<SpringPropertyType, List<String>> buildPaths() {
     return Map.of(
@@ -36,37 +75,6 @@ class FileSystemJHipsterModulesRepository implements JHipsterModulesRepository {
     );
   }
 
-  private final JavaProjects projects;
-  private final JHipsterModulesResources resources;
-
-  private final FileSystemJHipsterModuleFiles files;
-  private final FileSystemJavaBuildCommandsHandler javaBuild;
-  private final FileSystemSpringPropertiesCommandsHandler springProperties;
-  private final FileSystemSpringCommentsCommandsHandler springComments;
-  private final FileSystemSpringFactoriesCommandsHandler springFactories;
-  private final FileSystemPackageJsonHandler packageJson;
-  private final FileSystemReplacer replacer;
-  private final JHipsterLandscape landscape;
-
-  public FileSystemJHipsterModulesRepository(
-    ProjectFilesReader filesReader,
-    NpmVersions npmVersions,
-    JavaProjects projects,
-    JHipsterModulesResources resources
-  ) {
-    this.projects = projects;
-    this.resources = resources;
-    landscape = JHipsterLandscape.from(resources);
-
-    files = new FileSystemJHipsterModuleFiles(filesReader);
-    javaBuild = new FileSystemJavaBuildCommandsHandler();
-    springProperties = new FileSystemSpringPropertiesCommandsHandler();
-    springComments = new FileSystemSpringCommentsCommandsHandler();
-    springFactories = new FileSystemSpringFactoriesCommandsHandler();
-    packageJson = new FileSystemPackageJsonHandler(npmVersions);
-    replacer = new FileSystemReplacer();
-  }
-
   @Override
   public void apply(JHipsterModuleChanges changes) {
     Assert.notNull("changes", changes);
@@ -76,13 +84,16 @@ class FileSystemJHipsterModulesRepository implements JHipsterModulesRepository {
     files.create(changes.projectFolder(), changes.filesToAdd());
     files.move(changes.projectFolder(), changes.filesToMove());
     files.delete(changes.projectFolder(), changes.filesToDelete());
-    javaBuild.handle(changes.indentation(), changes.projectFolder(), changes.javaBuildCommands());
+    javaBuild.handle(changes.indentation(), changes.projectFolder(), changes.context(), changes.javaBuildCommands());
     springProperties.handle(changes.projectFolder(), changes.springProperties());
-    springComments.handle(changes.projectFolder(), changes.springComments(), changes.springPropertiesBlockComments());
+    springComments.handle(changes.projectFolder(), changes.springComments());
+    yamlSpringProperties.handle(changes.indentation(), changes.projectFolder(), changes.springYamlProperties());
+    yamlSpringComments.handle(changes.indentation(), changes.projectFolder(), changes.springYamlComments());
     springFactories.handle(changes.projectFolder(), changes.springFactories());
-    packageJson.handle(changes.indentation(), changes.projectFolder(), changes.packageJson());
-    replacer.handle(changes.projectFolder(), changes.mandatoryReplacements());
-    replacer.handle(changes.projectFolder(), changes.optionalReplacements());
+    gitIgnore.handle(changes.projectFolder(), changes.gitIgnore());
+    packageJson.handle(changes.indentation(), changes.projectFolder(), changes.packageJson(), changes.context());
+    replacer.handle(changes.projectFolder(), changes.replacers(), changes.context());
+    startupCommands.handle(changes.projectFolder(), changes.startupCommands(), changes.context());
 
     changes.postActions().run(new JHipsterModuleExecutionContext(changes.projectFolder()));
   }

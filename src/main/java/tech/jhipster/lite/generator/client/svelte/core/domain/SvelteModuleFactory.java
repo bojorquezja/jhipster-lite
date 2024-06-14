@@ -1,25 +1,25 @@
 package tech.jhipster.lite.generator.client.svelte.core.domain;
 
-import static tech.jhipster.lite.generator.client.common.domain.ClientsModulesFactory.*;
+import static tech.jhipster.lite.generator.client.common.domain.ClientsModulesFactory.clientModuleBuilder;
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
-import static tech.jhipster.lite.module.domain.packagejson.VersionSource.*;
+import static tech.jhipster.lite.module.domain.packagejson.VersionSource.SVELTE;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.Indentation;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.file.JHipsterDestination;
 import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class SvelteModuleFactory {
 
   private static final JHipsterSource SOURCE = from("client/svelte");
 
-  private static final String CACHE_NEEDLE = "  \"cacheDirectories\":";
+  private static final String ENGINES_NEEDLE = "  \"engines\":";
 
   private static final JHipsterSource PRIMARY_MAIN_SOURCE = SOURCE.append("src/main/webapp/app/common/primary/app");
   private static final JHipsterDestination PRIMARY_MAIN_DESTINATION = to("src/main/webapp/app/common/primary/app");
-  private static final JHipsterSource COMMON_ESLINT = from("client/common/eslint");
+  private static final JHipsterSource COMMON = from("client/common");
 
   private static final JHipsterSource PRIMARY_TEST_SOURCE = SOURCE.append("src/test/spec/common/primary/app");
   private static final JHipsterDestination PRIMARY_TEST_DESTINATION = to("src/test/javascript/spec/common/primary/app");
@@ -29,6 +29,10 @@ public class SvelteModuleFactory {
 
     //@formatter:off
     return clientModuleBuilder(properties)
+      .gitIgnore()
+        .comment("Svelte")
+        .pattern(".svelte-kit/")
+        .and()
       .packageJson()
         .addDependency(packageName("svelte-navigator"), SVELTE)
         .addDevDependency(packageName("@babel/preset-env"), SVELTE)
@@ -62,27 +66,34 @@ public class SvelteModuleFactory {
         .addScript(scriptKey("check:watch"), scriptCommand("svelte-check --tsconfig ./tsconfig.json --watch"))
         .addScript(
           scriptKey("lint"),
-          scriptCommand("prettier --ignore-path .gitignore --check --plugin-search-dir=. . && eslint --ignore-path .gitignore .")
+          scriptCommand("prettier --ignore-path .gitignore --check && eslint --ignore-path .gitignore .")
         )
-        .addScript(scriptKey("format"), scriptCommand("prettier --ignore-path .gitignore --write --plugin-search-dir=. ."))
-        .addScript(scriptKey("test"), scriptCommand("vitest run --coverage"))
+        .addScript(scriptKey("format"), scriptCommand("prettier --ignore-path .gitignore --write"))
+        .addScript(scriptKey("test"), scriptCommand("npm run test:watch"))
+        .addScript(scriptKey("test:coverage"), scriptCommand("vitest run --coverage"))
+        .addScript(scriptKey("test:watch"), scriptCommand("vitest --"))
         .and()
       .optionalReplacements()
         .in(path("package.json"))
-          .add(lineBeforeText(CACHE_NEEDLE), type(properties.indentation()))
+          .add(lineBeforeText(ENGINES_NEEDLE), type(properties.indentation()))
           .and()
         .and()
       .files()
         .add(SOURCE.file(".eslintrc.cjs"), to(".eslintrc.cjs"))
         .add(SOURCE.file("tsconfig.json"), to("tsconfig.json"))
-        .add(SOURCE.file("svelte.config.js"), to("svelte.config.js"))
         .add(SOURCE.file("vite.config.js"), to("vite.config.js"))
-        .add(SOURCE.file("vitest.config.ts"), to("vitest.config.ts"))
         .add(SOURCE.append("src/main/webapp/routes").template("+page.svelte"), to("src/main/webapp/routes/+page.svelte"))
         .add(PRIMARY_MAIN_SOURCE.template("App.svelte"), PRIMARY_MAIN_DESTINATION.append("App.svelte"))
         .add(PRIMARY_TEST_SOURCE.template("App.spec.ts"), PRIMARY_TEST_DESTINATION.append("App.spec.ts"))
-        .add(COMMON_ESLINT.file(".eslintignore"), to(".eslintignore"))
+        .batch(COMMON, to("."))
+          .addFile(".eslintignore")
+          .addFile(".npmrc")
+          .and()
         .move(path(".lintstagedrc.js"), to(".lintstagedrc.cjs"))
+        .batch(SOURCE, to("."))
+          .addTemplate("svelte.config.js")
+          .addTemplate("vitest.config.ts")
+          .and()
         .batch(SOURCE.file("src/main/webapp"), to("src/main/webapp"))
           .addTemplate("app.html")
           .addTemplate("app.d.ts")

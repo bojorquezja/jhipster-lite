@@ -12,34 +12,37 @@ import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
-import tech.jhipster.lite.common.domain.ExcludeFromGeneratedCodeCoverage;
-import tech.jhipster.lite.error.domain.GeneratorException;
 import tech.jhipster.lite.module.domain.JHipsterProjectFilePath;
-import tech.jhipster.lite.module.domain.ProjectFilesReader;
+import tech.jhipster.lite.module.domain.ProjectFiles;
 import tech.jhipster.lite.module.domain.file.JHipsterFileToMove;
 import tech.jhipster.lite.module.domain.file.JHipsterFilesToDelete;
 import tech.jhipster.lite.module.domain.file.JHipsterFilesToMove;
 import tech.jhipster.lite.module.domain.file.JHipsterTemplatedFile;
 import tech.jhipster.lite.module.domain.file.JHipsterTemplatedFiles;
+import tech.jhipster.lite.module.domain.file.TemplateRenderer;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 @Repository
-class FileSystemJHipsterModuleFiles {
+public class FileSystemJHipsterModuleFiles {
 
   private static final Logger log = LoggerFactory.getLogger(FileSystemJHipsterModuleFiles.class);
   private static final Set<PosixFilePermission> EXECUTABLE_FILE_PERMISSIONS = buildExecutableFilePermission();
 
-  private final ProjectFilesReader files;
+  private final ProjectFiles files;
+  private final TemplateRenderer templateRenderer;
 
-  public FileSystemJHipsterModuleFiles(ProjectFilesReader files) {
+  public FileSystemJHipsterModuleFiles(ProjectFiles files, TemplateRenderer templateRenderer) {
     this.files = files;
+    this.templateRenderer = templateRenderer;
   }
 
   private static Set<PosixFilePermission> buildExecutableFilePermission() {
     return Set.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ, GROUP_WRITE, GROUP_EXECUTE);
   }
 
-  void create(JHipsterProjectFolder projectFolder, JHipsterTemplatedFiles files) {
+  public void create(JHipsterProjectFolder projectFolder, JHipsterTemplatedFiles files) {
     files.get().forEach(writeFile(projectFolder));
   }
 
@@ -49,7 +52,7 @@ class FileSystemJHipsterModuleFiles {
 
       try {
         Files.createDirectories(file.folder(projectFolder));
-        Files.write(filePath, file.content(files));
+        Files.write(filePath, file.content(files, templateRenderer));
 
         setExecutable(file, filePath);
 

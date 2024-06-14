@@ -1,16 +1,19 @@
 package tech.jhipster.lite.module.domain.landscape;
 
+import static org.apache.commons.lang3.builder.ToStringStyle.*;
+
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import tech.jhipster.lite.common.domain.Generated;
-import tech.jhipster.lite.error.domain.Assert;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import tech.jhipster.lite.module.domain.JHipsterModuleSlug;
 import tech.jhipster.lite.module.domain.JHipsterSlug;
 import tech.jhipster.lite.module.domain.resource.JHipsterModuleOperation;
 import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertiesDefinition;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 public final class JHipsterLandscapeModule implements JHipsterLandscapeElement {
 
@@ -32,11 +35,6 @@ public final class JHipsterLandscapeModule implements JHipsterLandscapeElement {
 
   public static JHipsterLandscapeModuleSlugBuilder builder() {
     return new JHipsterLandscapeModuleBuilder();
-  }
-
-  @Override
-  public JHipsterLandscapeElementType type() {
-    return JHipsterLandscapeElementType.MODULE;
   }
 
   @Override
@@ -68,13 +66,13 @@ public final class JHipsterLandscapeModule implements JHipsterLandscapeElement {
   }
 
   @Override
-  @Generated
+  @ExcludeFromGeneratedCodeCoverage
   public int hashCode() {
     return new HashCodeBuilder().append(module).hashCode();
   }
 
   @Override
-  @Generated
+  @ExcludeFromGeneratedCodeCoverage
   public boolean equals(Object obj) {
     if (this == obj) {
       return true;
@@ -89,7 +87,17 @@ public final class JHipsterLandscapeModule implements JHipsterLandscapeElement {
     return new EqualsBuilder().append(module, other.module).isEquals();
   }
 
-  public static class JHipsterLandscapeModuleBuilder
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this, SHORT_PREFIX_STYLE)
+      .append("module", module)
+      .append("operation", operation)
+      .append("propertiesDefinition", propertiesDefinition)
+      .append("dependencies", dependencies)
+      .build();
+  }
+
+  private static final class JHipsterLandscapeModuleBuilder
     implements
       JHipsterLandscapeModuleSlugBuilder,
       JHipsterLandscapeModuleOperationBuilder,
@@ -98,10 +106,8 @@ public final class JHipsterLandscapeModule implements JHipsterLandscapeElement {
 
     private JHipsterModuleSlug module;
     private JHipsterModuleOperation operation;
-    private Collection<JHipsterLandscapeDependency> dependencies;
+    private Collection<? extends JHipsterLandscapeDependency> dependencies;
     private JHipsterModulePropertiesDefinition propertiesDefinition;
-
-    private JHipsterLandscapeModuleBuilder() {}
 
     @Override
     public JHipsterLandscapeModuleOperationBuilder module(JHipsterModuleSlug module) {
@@ -125,7 +131,7 @@ public final class JHipsterLandscapeModule implements JHipsterLandscapeElement {
     }
 
     @Override
-    public JHipsterLandscapeModule dependencies(Collection<JHipsterLandscapeDependency> dependencies) {
+    public JHipsterLandscapeModule dependencies(Collection<? extends JHipsterLandscapeDependency> dependencies) {
       this.dependencies = dependencies;
 
       return new JHipsterLandscapeModule(this);
@@ -153,7 +159,7 @@ public final class JHipsterLandscapeModule implements JHipsterLandscapeElement {
   }
 
   public interface JHipsterLandscapeModuleDependenciesBuilder {
-    JHipsterLandscapeModule dependencies(Collection<JHipsterLandscapeDependency> dependencies);
+    JHipsterLandscapeModule dependencies(Collection<? extends JHipsterLandscapeDependency> dependencies);
 
     default JHipsterLandscapeModule withoutDependencies() {
       return dependencies(null);

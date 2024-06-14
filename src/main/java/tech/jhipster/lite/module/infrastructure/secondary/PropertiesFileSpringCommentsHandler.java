@@ -3,19 +3,19 @@ package tech.jhipster.lite.module.infrastructure.secondary;
 import static tech.jhipster.lite.module.domain.JHipsterModule.LINE_BREAK;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import tech.jhipster.lite.common.domain.Generated;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.error.domain.GeneratorException;
+import java.util.Collection;
+import java.util.List;
 import tech.jhipster.lite.module.domain.javaproperties.Comment;
 import tech.jhipster.lite.module.domain.javaproperties.PropertyKey;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 class PropertiesFileSpringCommentsHandler {
 
   private static final String HASH = "#";
-  private static final String EQUAL = "=";
   private static final String BLANK_SPACE = " ";
 
   private final Path file;
@@ -33,7 +33,7 @@ class PropertiesFileSpringCommentsHandler {
     updateComments(key, comment);
   }
 
-  @Generated
+  @ExcludeFromGeneratedCodeCoverage(reason = "Hard to cover IOException")
   private void updateComments(PropertyKey key, Comment comment) {
     try {
       String properties = buildComments(key, comment);
@@ -41,7 +41,7 @@ class PropertiesFileSpringCommentsHandler {
         return;
       }
 
-      Files.write(file, properties.getBytes(StandardCharsets.UTF_8));
+      Files.writeString(file, properties);
     } catch (IOException e) {
       throw GeneratorException.technicalError("Error updating comments: " + e.getMessage(), e);
     }
@@ -50,10 +50,10 @@ class PropertiesFileSpringCommentsHandler {
   private String buildComments(PropertyKey key, Comment comment) throws IOException {
     String currentProperties = readProperties();
 
-    int propertyIndex = currentProperties.indexOf(propertyId(key));
+    int propertyIndex = currentProperties.indexOf(key.get());
     if (propertyIndex != -1) {
       currentProperties = deletePreviousComment(currentProperties, propertyIndex);
-      propertyIndex = currentProperties.indexOf(propertyId(key));
+      propertyIndex = currentProperties.indexOf(key.get());
       String start = currentProperties.substring(0, propertyIndex);
       String end = currentProperties.substring(propertyIndex);
 
@@ -64,7 +64,9 @@ class PropertiesFileSpringCommentsHandler {
   }
 
   private String deletePreviousComment(String currentProperties, int propertyIndex) {
-    if (isFirstLine(currentProperties, propertyIndex)) return currentProperties;
+    if (isFirstLine(currentProperties, propertyIndex)) {
+      return currentProperties;
+    }
     CommentPosition commentPosition = findPossibleCommentPosition(currentProperties, propertyIndex);
     if (propertyHasComment(currentProperties, commentPosition)) {
       return deleteComment(currentProperties, commentPosition);
@@ -102,11 +104,13 @@ class PropertiesFileSpringCommentsHandler {
   }
 
   private String commentLine(Comment comment) {
-    return new StringBuilder().append(HASH).append(BLANK_SPACE).append(comment.get()).append(LINE_BREAK).toString();
+    StringBuilder stringBuilder = new StringBuilder();
+    splitLines(comment).forEach(line -> stringBuilder.append(HASH).append(BLANK_SPACE).append(line).append(LINE_BREAK));
+    return stringBuilder.toString();
   }
 
-  private String propertyId(PropertyKey key) {
-    return key.get() + EQUAL;
+  private static Collection<String> splitLines(Comment comment) {
+    return List.of(comment.get().split("\\r?\\n"));
   }
 
   private record CommentPosition(int start, int end) {}

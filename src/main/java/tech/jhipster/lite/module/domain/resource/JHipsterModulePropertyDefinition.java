@@ -1,14 +1,17 @@
 package tech.jhipster.lite.module.domain.resource;
 
+import static org.apache.commons.lang3.builder.ToStringStyle.*;
+
 import java.util.Optional;
-import tech.jhipster.lite.error.domain.Assert;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyDefaultValue;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyDescription;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyKey;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyType;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterModulePropertyDefinition {
+public final class JHipsterModulePropertyDefinition {
 
   private final JHipsterPropertyType type;
   private final boolean mandatory;
@@ -73,6 +76,14 @@ public class JHipsterModulePropertyDefinition {
       .build();
   }
 
+  public static JHipsterModulePropertyDefinition springConfigurationFormatProperty() {
+    return optionalStringProperty(JHipsterModuleProperties.SPRING_CONFIGURATION_FORMAT)
+      .description("Format of the Spring configuration files (yaml or properties)")
+      .defaultValue("yaml")
+      .order(500)
+      .build();
+  }
+
   public static JHipsterModulePropertyDefinitionOptionalFieldsBuilder mandatoryStringProperty(String key) {
     return builder().type(JHipsterPropertyType.STRING).mandatory(true).key(key);
   }
@@ -125,7 +136,19 @@ public class JHipsterModulePropertyDefinition {
     return order;
   }
 
-  public static class JHipsterModulePropertyDefinitionBuilder
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this, SHORT_PREFIX_STYLE)
+      .append("type", type)
+      .append("key", key)
+      .append("mandatory", mandatory)
+      .append("description", description.map(JHipsterPropertyDescription::get).orElse(""))
+      .append("defaultValue", defaultValue.map(JHipsterPropertyDefaultValue::get).orElse(""))
+      .append("order", order)
+      .build();
+  }
+
+  private static final class JHipsterModulePropertyDefinitionBuilder
     implements
       JHipsterModulePropertyDefinitionTypeBuilder,
       JHipsterModulePropertyDefinitionOptionalityBuilder,
@@ -138,8 +161,6 @@ public class JHipsterModulePropertyDefinition {
     private String description;
     private String defaultValue;
     private int order;
-
-    private JHipsterModulePropertyDefinitionBuilder() {}
 
     @Override
     public JHipsterModulePropertyDefinitionOptionalityBuilder type(JHipsterPropertyType type) {

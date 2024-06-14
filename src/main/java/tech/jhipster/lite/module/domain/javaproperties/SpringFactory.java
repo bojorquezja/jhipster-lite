@@ -1,14 +1,14 @@
 package tech.jhipster.lite.module.domain.javaproperties;
 
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class SpringFactory {
+public final class SpringFactory {
 
   private final SpringFactoryType type;
   private final PropertyKey key;
   private final PropertyValue value;
 
-  public SpringFactory(SpringFactoryBuilder builder) {
+  private SpringFactory(SpringFactoryBuilder builder) {
     Assert.notNull("type", builder.type);
     Assert.notNull("key", builder.key);
     Assert.notNull("value", builder.value);
@@ -34,7 +34,7 @@ public class SpringFactory {
     return value;
   }
 
-  private static class SpringFactoryBuilder implements SpringFactoryKeyBuilder, SpringFactoryValueBuilder {
+  private static final class SpringFactoryBuilder implements SpringFactoryKeyBuilder, SpringFactoryValueBuilder {
 
     private final SpringFactoryType type;
     private PropertyKey key;

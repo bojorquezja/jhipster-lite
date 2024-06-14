@@ -3,9 +3,9 @@ package tech.jhipster.lite.statistic.domain;
 import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class AppliedModule {
+public final class AppliedModule {
 
   private final AppliedModuleId id;
   private final ProjectPath path;
@@ -55,7 +55,7 @@ public class AppliedModule {
     return properties;
   }
 
-  public static class ModuleAppliedBuilder
+  private static final class ModuleAppliedBuilder
     implements
       ModuleAppliedIdBuilder,
       ModuleAppliedPathBuilder,
@@ -68,8 +68,6 @@ public class AppliedModule {
     private Module module;
     private Instant date;
     private ModuleProperties properties;
-
-    private ModuleAppliedBuilder() {}
 
     @Override
     public ModuleAppliedPathBuilder id(AppliedModuleId id) {

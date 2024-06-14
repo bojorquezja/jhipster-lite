@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class NpmPackagesVersions {
+public final class NpmPackagesVersions {
 
   public static final NpmPackagesVersions EMPTY = builder().build();
 
@@ -31,8 +31,7 @@ public class NpmPackagesVersions {
     Assert.notNull("packageName", packageName);
     Assert.notNull("source", source);
 
-    return Optional
-      .ofNullable(versions.get(source))
+    return Optional.ofNullable(versions.get(source))
       .orElseThrow(() -> new UnknownNpmPackageException(packageName, source))
       .get(packageName);
   }
@@ -48,7 +47,7 @@ public class NpmPackagesVersions {
 
   public static class NpmPackagesVersionsBuilder {
 
-    public final Map<NpmVersionSource, NpmSourceVersions> versions = new ConcurrentHashMap<>();
+    private final Map<NpmVersionSource, NpmSourceVersions> versions = new ConcurrentHashMap<>();
 
     public NpmPackagesVersionsBuilder put(NpmVersionSource source, Collection<NpmPackage> packages) {
       versions.computeIfAbsent(source, key -> new NpmSourceVersions(source)).add(packages);
@@ -61,7 +60,7 @@ public class NpmPackagesVersions {
     }
   }
 
-  private static class NpmSourceVersions {
+  private static final class NpmSourceVersions {
 
     private final NpmVersionSource source;
     private final Map<NpmPackageName, NpmPackageVersion> versions = new ConcurrentHashMap<>();

@@ -1,7 +1,8 @@
 package tech.jhipster.lite.generator.server.springboot.mvc.security.oauth2.okta.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteFeatureSlug.*;
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.OAUTH_PROVIDER;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.SPRING_BOOT_OAUTH_2;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.SPRING_BOOT_OAUTH_2_OKTA;
 import static tech.jhipster.lite.module.domain.resource.JHipsterModulePropertyDefinition.mandatoryStringProperty;
 
 import org.springframework.context.annotation.Bean;
@@ -19,8 +20,7 @@ class OAuth2OktaModuleConfiguration {
 
   @Bean
   JHipsterModuleResource oAuth2OktaModule(OAuth2OktaSecurityApplicationService oAuth2) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SPRING_BOOT_OAUTH_2_OKTA)
       .propertiesDefinition(initPropertiesDefinition())
       .apiDoc(
@@ -33,13 +33,13 @@ class OAuth2OktaModuleConfiguration {
   }
 
   private JHipsterModulePropertiesDefinition initPropertiesDefinition() {
-    return JHipsterModulePropertiesDefinition
-      .builder()
+    return JHipsterModulePropertiesDefinition.builder()
       .addProjectBaseName()
       .addProjectName()
       .add(oktaDomain())
       .add(oktaClientId())
       .addIndentation()
+      .addSpringConfigurationFormat()
       .build();
   }
 

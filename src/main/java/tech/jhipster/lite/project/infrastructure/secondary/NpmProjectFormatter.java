@@ -5,14 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tech.jhipster.lite.common.domain.ExcludeFromGeneratedCodeCoverage;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.project.domain.ProjectPath;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 @ExcludeFromGeneratedCodeCoverage(reason = "Error cases are hard to test and not worth the efforts")
 record NpmProjectFormatter(String command) implements ProjectFormatter {
@@ -36,7 +34,7 @@ record NpmProjectFormatter(String command) implements ProjectFormatter {
         throw new ProjectFormattingException("Error during formatting, process failed");
       }
 
-      traceProcess(Stream.of(commands).collect(Collectors.joining(" ")), process);
+      traceProcess(String.join(" ", commands), process);
     } catch (IOException e) {
       throw new ProjectFormattingException("Error during formatting: " + e.getMessage(), e);
     } catch (InterruptedException e) {

@@ -1,12 +1,12 @@
 package tech.jhipster.lite.module.domain.file;
 
 import java.nio.file.Path;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModuleContext;
-import tech.jhipster.lite.module.domain.ProjectFilesReader;
+import tech.jhipster.lite.module.domain.ProjectFiles;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterTemplatedFile {
+public final class JHipsterTemplatedFile {
 
   private final JHipsterModuleFile file;
   private final JHipsterModuleContext context;
@@ -35,8 +35,8 @@ public class JHipsterTemplatedFile {
     return file.destination().pathInProject(projectFolder);
   }
 
-  public byte[] content(ProjectFilesReader files) {
-    return file.content().read(files, context);
+  public byte[] content(ProjectFiles files, TemplateRenderer templateRenderer) {
+    return file.content().read(files, context, templateRenderer);
   }
 
   public boolean isNotExecutable() {

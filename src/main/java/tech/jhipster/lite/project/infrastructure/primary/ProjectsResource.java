@@ -40,8 +40,7 @@ class ProjectsResource {
     Project project = projects.get(new ProjectPath(path));
     String filename = project.name().filename();
 
-    return ResponseEntity
-      .ok()
+    return ResponseEntity.ok()
       .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
       .header("X-Suggested-Filename", filename)
       .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -51,7 +50,7 @@ class ProjectsResource {
 
   @Operation(summary = "Get project information")
   @GetMapping(path = "/projects", produces = MediaType.APPLICATION_JSON_VALUE)
-  ResponseEntity<RestProjectHistory> getprojectHistory(
+  ResponseEntity<RestProjectHistory> getProjectHistory(
     @Schema(description = "Path of the project to get information for") @RequestParam("path") String path
   ) {
     return ResponseEntity.ok(RestProjectHistory.from(projects.getHistory(new ProjectPath(path))));

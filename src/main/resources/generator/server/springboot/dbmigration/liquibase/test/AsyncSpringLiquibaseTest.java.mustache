@@ -1,14 +1,6 @@
-package {{packageName}}.technical.infrastructure.secondary.liquibase;
+package {{packageName}}.wire.liquibase.infrastructure.secondary;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import ch.qos.logback.classic.Level;
 import java.sql.Connection;
@@ -18,7 +10,6 @@ import java.util.concurrent.Executor;
 import javax.sql.DataSource;
 import liquibase.Liquibase;
 import liquibase.exception.LiquibaseException;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,21 +17,21 @@ import org.springframework.boot.autoconfigure.liquibase.LiquibaseProperties;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.mock.env.MockEnvironment;
+import {{packageName}}.Logs;
 import {{packageName}}.LogsSpy;
+import {{packageName}}.LogsSpyExtension;
 import {{packageName}}.UnitTest;
 
-@ExtendWith(LogsSpy.class)
 @UnitTest
+@ExtendWith(LogsSpyExtension.class)
 class AsyncSpringLiquibaseTest {
 
   private final ConfigurableEnvironment environment = new MockEnvironment();
   private final Executor executor = spy(new DirectExecutor());
   private final LiquibaseProperties liquibaseProperties = new LiquibaseProperties();
-  private final LogsSpy logs;
 
-  public AsyncSpringLiquibaseTest(LogsSpy logs) {
-    this.logs = logs;
-  }
+  @Logs
+  private LogsSpy logs;
 
   @Nested
   class AfterPropertiesSetTest {
@@ -112,12 +103,12 @@ class AsyncSpringLiquibaseTest {
   class InitDbTest {
 
     @Test
-    void shouldWarnWhenLiquibaseExecutionIsSlow() throws LiquibaseException, SQLException {
+    void shouldWarnWhenLiquibaseExecutionIsSlow() throws LiquibaseException {
       liquibaseProperties.setEnabled(true);
       Duration slownessThreshold = Duration.ofMillis(50);
-      TestAsyncSpringLiquibase asyncSpringLiquibase = spy(new TestAsyncSpringLiquibase(executor, environment, liquibaseProperties,
-        slownessThreshold
-      ));
+      TestAsyncSpringLiquibase asyncSpringLiquibase = spy(
+        new TestAsyncSpringLiquibase(executor, environment, liquibaseProperties, slownessThreshold)
+      );
       asyncSpringLiquibase.setFakeDuration(slownessThreshold.plusMillis(1));
 
       asyncSpringLiquibase.initDb();
@@ -125,13 +116,12 @@ class AsyncSpringLiquibaseTest {
       logs.shouldHave(Level.DEBUG, "Liquibase has updated your database in");
       logs.shouldHave(Level.WARN, "Warning, Liquibase took more than %s seconds to start up!".formatted(slownessThreshold.toSeconds()));
     }
-
   }
 
-  private static class DirectExecutor implements Executor {
+  private static final class DirectExecutor implements Executor {
 
     @Override
-    public void execute(@NotNull Runnable command) {
+    public void execute(Runnable command) {
       command.run();
     }
   }
@@ -140,7 +130,12 @@ class AsyncSpringLiquibaseTest {
 
     private Duration fakeDuration = Duration.ZERO;
 
-    public TestAsyncSpringLiquibase(Executor executor, Environment environment, LiquibaseProperties liquibaseProperties, Duration slownessThreshold) {
+    public TestAsyncSpringLiquibase(
+      Executor executor,
+      Environment environment,
+      LiquibaseProperties liquibaseProperties,
+      Duration slownessThreshold
+    ) {
       super(executor, environment, liquibaseProperties, slownessThreshold);
     }
 
@@ -153,13 +148,12 @@ class AsyncSpringLiquibaseTest {
       DataSource source = mock(DataSource.class);
       try {
         doReturn(mock(Connection.class)).when(source).getConnection();
-      } catch (SQLException x) {
+      } catch (SQLException exception) {
         // This should never happen
-        throw new AssertionError(x);
+        throw new AssertionError(exception);
       }
       return source;
     }
-
 
     @Override
     protected Liquibase createLiquibase(Connection c) {
@@ -171,11 +165,10 @@ class AsyncSpringLiquibaseTest {
     protected void performUpdate(Liquibase liquibase) {
       try {
         Thread.sleep(fakeDuration.toMillis());
-      } catch (InterruptedException x) {
+      } catch (InterruptedException exception) {
         // This should never happen
-        throw new Error(x);
+        throw new Error(exception);
       }
     }
-
   }
 }

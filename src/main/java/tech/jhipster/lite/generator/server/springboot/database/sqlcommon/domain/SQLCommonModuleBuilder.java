@@ -2,7 +2,6 @@ package tech.jhipster.lite.generator.server.springboot.database.sqlcommon.domain
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.generator.server.springboot.database.common.domain.DatabaseType;
 import tech.jhipster.lite.module.domain.DocumentationTitle;
 import tech.jhipster.lite.module.domain.LogLevel;
@@ -14,12 +13,13 @@ import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
 import tech.jhipster.lite.module.domain.javaproperties.PropertyValue;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class SQLCommonModuleBuilder {
+public final class SQLCommonModuleBuilder {
 
   private static final String ORG_HIBERNATE = "org.hibernate.orm";
-  private static final PropertyValue FALSE = propertyValue("false");
-  private static final PropertyValue TRUE = propertyValue("true");
+  private static final PropertyValue FALSE = propertyValue(false);
+  private static final PropertyValue TRUE = propertyValue(true);
 
   private SQLCommonModuleBuilder() {}
 
@@ -40,8 +40,9 @@ public class SQLCommonModuleBuilder {
     JHipsterSource source = from("server/springboot/database/" + databaseType.id());
     JHipsterDestination mainDestination = toSrcMainJava()
       .append(properties.packagePath())
-      .append("technical/infrastructure/secondary/")
-      .append(databaseId);
+      .append("wire")
+      .append(databaseId)
+      .append("infrastructure/secondary/");
 
     //@formatter:off
     return moduleBuilder(properties)
@@ -50,7 +51,9 @@ public class SQLCommonModuleBuilder {
         .put(databaseId + "DockerImageWithVersion", dockerImage.fullName()) // To be used in <databaseId>.yml docker-compose file
         .and()
       .documentation(documentationTitle, source.template(databaseId + ".md"))
-      .startupCommand(startupCommand(databaseId))
+      .startupCommands()
+        .dockerCompose(startupCommand(databaseId))
+        .and()
       .files()
         .add(source.template("DatabaseConfiguration.java"), mainDestination.append("DatabaseConfiguration.java"))
         .add(source.template(databaseId + ".yml"), toSrcMainDocker().append(databaseId + ".yml"))
@@ -79,7 +82,7 @@ public class SQLCommonModuleBuilder {
         .set(propertyKey("spring.jpa.open-in-view"), FALSE)
         .set(propertyKey("spring.jpa.properties.hibernate.connection.provider_disables_autocommit"), TRUE)
         .set(propertyKey("spring.jpa.properties.hibernate.generate_statistics"), FALSE)
-        .set(propertyKey("spring.jpa.properties.hibernate.jdbc.batch_size"), propertyValue("25"))
+        .set(propertyKey("spring.jpa.properties.hibernate.jdbc.batch_size"), propertyValue(25))
         .set(propertyKey("spring.jpa.properties.hibernate.jdbc.time_zone"), propertyValue("UTC"))
         .set(propertyKey("spring.jpa.properties.hibernate.order_inserts"), TRUE)
         .set(propertyKey("spring.jpa.properties.hibernate.order_updates"), TRUE)
@@ -94,10 +97,7 @@ public class SQLCommonModuleBuilder {
         .set(propertyKey("spring.datasource.username"), propertyValue(properties.projectBaseName().name()))
         .set(propertyKey("spring.datasource.password"), propertyValue(""))
         .set(propertyKey("spring.datasource.driver-class-name"), propertyValue("org.testcontainers.jdbc.ContainerDatabaseDriver"))
-        .set(propertyKey("spring.datasource.hikari.maximum-pool-size"), propertyValue("2"))
-        .set(propertyKey("spring.jpa.open-in-view"), FALSE)
-        .set(propertyKey("spring.jpa.properties.hibernate.connection.provider_disables_autocommit"), TRUE)
-        .set(propertyKey("spring.datasource.hikari.auto-commit"), FALSE)
+        .set(propertyKey("spring.datasource.hikari.maximum-pool-size"), propertyValue(2))
         .and()
       .springMainLogger("org.hibernate.validator", LogLevel.WARN)
       .springMainLogger(ORG_HIBERNATE, LogLevel.WARN)
@@ -110,16 +110,17 @@ public class SQLCommonModuleBuilder {
     //@formatter:on
   }
 
-  private static JavaDependency testContainer(ArtifactId testContainerArtifactI) {
+  private static JavaDependency testContainer(ArtifactId testContainerArtifactId) {
     return javaDependency()
       .groupId("org.testcontainers")
-      .artifactId(testContainerArtifactI)
+      .artifactId(testContainerArtifactId)
+      .dependencySlug("%s-%s".formatted("testcontainers", testContainerArtifactId))
       .versionSlug("testcontainers")
       .scope(JavaDependencyScope.TEST)
       .build();
   }
 
   private static String startupCommand(String databaseId) {
-    return "docker compose -f src/main/docker/" + databaseId + ".yml up -d";
+    return "src/main/docker/" + databaseId + ".yml";
   }
 }

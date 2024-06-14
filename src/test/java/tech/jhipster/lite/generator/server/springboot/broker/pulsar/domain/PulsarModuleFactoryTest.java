@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.server.springboot.broker.pulsar.domain;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
 
 import org.junit.jupiter.api.Test;
@@ -30,8 +30,7 @@ class PulsarModuleFactoryTest {
   void shouldBuildModule() {
     when(dockerImages.get("apachepulsar/pulsar")).thenReturn(new DockerImageVersion("apachepulsar/pulsar", "1.1.1"));
 
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .build();
 
@@ -62,14 +61,28 @@ class PulsarModuleFactoryTest {
       .hasFile("src/main/docker/pulsar.yml")
       .containing("apachepulsar/pulsar:1.1.1")
       .and()
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("pulsar.client.service-url=pulsar://localhost:6650")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        pulsar:
+          client:
+            service-url: pulsar://localhost:6650
+        """
+      )
       .and()
-      .hasFile("src/test/resources/config/application.properties")
-      .containing("pulsar.client.num-io-threads=8")
-      .containing("pulsar.producer.topic-name=test-topic")
-      .containing("pulsar.consumer.topic-names[0]=test-topic")
-      .containing("pulsar.consumer.subscription-name=test-subscription")
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        pulsar:
+          client:
+            num-io-threads: 8
+          consumer:
+            subscription-name: test-subscription
+            topic-names[0]: test-topic
+          producer:
+            topic-name: test-topic
+        """
+      )
       .and()
       .hasJavaTests("com/jhipster/test/PulsarTestContainerExtension.java")
       .hasFile("src/test/java/com/jhipster/test/IntegrationTest.java")
@@ -77,17 +90,19 @@ class PulsarModuleFactoryTest {
       .containing("@ExtendWith(PulsarTestContainerExtension.class)")
       .and()
       .hasPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/config/pulsar",
+        "src/main/java/com/jhipster/test/wire/pulsar/infrastructure/config",
         "PulsarProperties.java",
         "PulsarConfiguration.java"
       )
-      .hasFiles("src/test/java/com/jhipster/test/technical/infrastructure/config/pulsar/PulsarConfigurationIT.java")
+      .hasFiles("src/test/java/com/jhipster/test/wire/pulsar/infrastructure/config/PulsarConfigurationIT.java")
       .hasFile("README.md")
-      .containing("""
-          ```bash
-          docker compose -f src/main/docker/pulsar.yml up -d
-          ```
-          """);
+      .containing(
+        """
+        ```bash
+        docker compose -f src/main/docker/pulsar.yml up -d
+        ```
+        """
+      );
   }
 
   private ModuleFile integrationTestAnnotation() {

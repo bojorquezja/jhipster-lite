@@ -1,7 +1,7 @@
 package tech.jhipster.lite.generator.server.springboot.cache.ehcache.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteFeatureSlug.JCACHE;
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.JCACHE;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +18,7 @@ class EHCacheModulesConfiguration {
 
   @Bean
   JHipsterModuleResource javaEHCacheModule(EhcacheApplicationService ehCaches) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(EHCACHE_JAVA_CONFIG)
       .propertiesDefinition(properties())
       .apiDoc("Spring Boot - Cache", "Add Ehcache with Java configuration")
@@ -30,8 +29,7 @@ class EHCacheModulesConfiguration {
 
   @Bean
   JHipsterModuleResource xmlEHCacheModule(EhcacheApplicationService ehCaches) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(EHCACHE_XML_CONFIG)
       .propertiesDefinition(properties())
       .apiDoc("Spring Boot - Cache", "Add Ehcache with XML configuration")
@@ -41,7 +39,7 @@ class EHCacheModulesConfiguration {
   }
 
   private JHipsterModulePropertiesDefinition properties() {
-    return JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().build();
+    return JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().addSpringConfigurationFormat().build();
   }
 
   private JHipsterModuleOrganization organization() {

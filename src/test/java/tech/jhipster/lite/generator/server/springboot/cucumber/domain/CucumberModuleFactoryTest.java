@@ -1,6 +1,7 @@
 package tech.jhipster.lite.generator.server.springboot.cucumber.domain;
 
-import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.assertThatModuleWithFiles;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.pomFile;
 
 import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.TestFileUtils;
@@ -16,8 +17,7 @@ class CucumberModuleFactoryTest {
 
   @Test
   void shouldBuildInitialModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .projectBaseName("myapp")
       .build();
@@ -25,19 +25,18 @@ class CucumberModuleFactoryTest {
     JHipsterModule module = factory.buildInitializationModule(properties);
 
     assertThatModuleWithFiles(module, pomFile())
+      .hasPrefixedFiles("src/test/java/com/jhipster/test/cucumber", "CucumberConfiguration.java", "CucumberTest.java")
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/cucumber",
+        "src/test/java/com/jhipster/test/cucumber/rest",
         "AsyncElementAsserter.java",
         "AsyncHeaderAsserter.java",
         "AsyncResponseAsserter.java",
         "Awaiter.java",
-        "CucumberAssertions.java",
+        "CucumberRestAssertions.java",
         "CucumberRestTemplate.java",
-        "CucumberConfiguration.java",
         "CucumberJson.java",
-        "CucumberTest.java",
-        "CucumberTestContext.java",
-        "CucumberTestContextUnitTest.java",
+        "CucumberRestTestContext.java",
+        "CucumberRestTestContextUnitTest.java",
         "ElementAsserter.java",
         "ElementAssertions.java",
         "HeaderAsserter.java",
@@ -50,12 +49,10 @@ class CucumberModuleFactoryTest {
       .hasFiles("documentation/cucumber.md")
       .hasFiles("src/test/features/.gitkeep")
       .hasFile("pom.xml")
-      .containing("<artifactId>cucumber-junit</artifactId>")
+      .containing("<artifactId>cucumber-junit-platform-engine</artifactId>")
       .containing("<artifactId>cucumber-java</artifactId>")
       .containing("<artifactId>cucumber-spring</artifactId>")
-      .containing("<artifactId>junit-vintage-engine</artifactId>")
-      .containing("<artifactId>testng</artifactId>")
-      .containing("<artifactId>awaitility</artifactId>")
+      .containing("<artifactId>junit-platform-suite</artifactId>")
       .containing("<version>${cucumber.version}</version>")
       .and()
       .doNotHaveFiles("src/test/java/com/jhipster/test/cucumber/CucumberJpaReset.java");
@@ -63,8 +60,7 @@ class CucumberModuleFactoryTest {
 
   @Test
   void shouldBuildJpaResetModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .build();
 

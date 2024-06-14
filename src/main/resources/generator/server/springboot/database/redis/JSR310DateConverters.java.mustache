@@ -1,4 +1,4 @@
-package {{packageName}}.technical.infrastructure.secondary.redis;
+package {{packageName}}.wire.redis.infrastructure.secondary;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -12,7 +12,8 @@ public final class JSR310DateConverters {
 
   private JSR310DateConverters() {}
 
-  public static class ZonedDateTimeToDateConverter implements Converter<ZonedDateTime, Date> {
+  @SuppressWarnings("java:S6548")
+  public static final class ZonedDateTimeToDateConverter implements Converter<ZonedDateTime, Date> {
 
     public static final ZonedDateTimeToDateConverter INSTANCE = new ZonedDateTimeToDateConverter();
 
@@ -24,7 +25,8 @@ public final class JSR310DateConverters {
     }
   }
 
-  public static class DateToZonedDateTimeConverter implements Converter<Date, ZonedDateTime> {
+  @SuppressWarnings("java:S6548")
+  public static final class DateToZonedDateTimeConverter implements Converter<Date, ZonedDateTime> {
 
     public static final DateToZonedDateTimeConverter INSTANCE = new DateToZonedDateTimeConverter();
 

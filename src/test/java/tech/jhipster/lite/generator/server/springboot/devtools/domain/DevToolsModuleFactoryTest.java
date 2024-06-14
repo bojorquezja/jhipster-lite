@@ -1,6 +1,7 @@
 package tech.jhipster.lite.generator.server.springboot.devtools.domain;
 
-import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.assertThatModuleWithFiles;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.pomFile;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +22,7 @@ class DevToolsModuleFactoryTest {
 
   @Test
   void shouldCreateModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .projectBaseName("myapp")
       .build();
@@ -43,12 +43,28 @@ class DevToolsModuleFactoryTest {
         """
       )
       .and()
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("spring.devtools.livereload.enabled=false")
-      .containing("spring.devtools.restart.enabled=false")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        spring:
+          devtools:
+            livereload:
+              enabled: false
+            restart:
+              enabled: false
+        """
+      )
       .and()
-      .hasFile("src/main/resources/config/application-local.properties")
-      .containing("spring.devtools.livereload.enabled=true")
-      .containing("spring.devtools.restart.enabled=true");
+      .hasFile("src/main/resources/config/application-local.yml")
+      .containing(
+        """
+        spring:
+          devtools:
+            livereload:
+              enabled: true
+            restart:
+              enabled: true
+        """
+      );
   }
 }

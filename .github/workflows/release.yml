@@ -13,12 +13,12 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: 'Setup: checkout project'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: 'Setup: environment'
         id: setup
         uses: ./.github/actions/setup
       - name: 'Init: cache local Maven repository'
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -32,9 +32,14 @@ jobs:
         run: |
           chmod +x mvnw
           ./mvnw clean verify
-          rm target/*-javadoc.jar target/*-sources.jar
+          ARTIFACT_VERSION=$(./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout)
+          rm target/*${ARTIFACT_VERSION}.jar
+          rm target/*${ARTIFACT_VERSION}-javadoc.jar
+          rm target/*${ARTIFACT_VERSION}-sources.jar
+          rm target/*${ARTIFACT_VERSION}-tests.jar
+          mv target/jhlite-${ARTIFACT_VERSION}-exec.jar target/jhlite-${ARTIFACT_VERSION}.jar
       - name: 'Artifact: upload JAR'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jhlite-jar
           path: '${{ github.workspace }}/target/*.jar'
@@ -50,9 +55,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: 'Setup: checkout project'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: 'Artifact: download JAR'
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: jhlite-jar
           path: ./target/
@@ -66,7 +71,7 @@ jobs:
           echo "artifact_asset_path=${ARTIFACT_PATHNAME}" >> $GITHUB_OUTPUT
           echo "artifact_version=${ARTIFACT_VERSION}" >> $GITHUB_OUTPUT
       - name: 'Release: publish release drafter'
-        uses: release-drafter/release-drafter@v5
+        uses: release-drafter/release-drafter@v6
         id: release-drafter-final
         with:
           publish: true

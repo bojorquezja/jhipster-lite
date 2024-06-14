@@ -4,36 +4,37 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import tech.jhipster.lite.UnitTest;
-import tech.jhipster.lite.module.domain.ProjectFilesReader;
+import tech.jhipster.lite.module.domain.ProjectFiles;
 import tech.jhipster.lite.module.domain.docker.DockerImageName;
 import tech.jhipster.lite.module.domain.docker.DockerImageVersion;
 import tech.jhipster.lite.module.domain.docker.DockerVersion;
 import tech.jhipster.lite.module.domain.docker.UnknownDockerImageException;
 
 @UnitTest
-@ExtendWith(MockitoExtension.class)
 class FileSystemDockerImagesReaderTest {
 
   @Test
   void shouldIgnoreInvalidVersionInFile() {
-    FileSystemDockerImagesReader reader = mockedReader("""
+    FileSystemDockerImagesReader reader = mockedReader(
+      """
       FROM invalid
        FROM mysql:8.0.29
-      FROM postgres:14.3""");
+      FROM postgres:14.3"""
+    );
 
     assertThatThrownBy(() -> reader.get().get(new DockerImageName("invalid"))).isExactlyInstanceOf(UnknownDockerImageException.class);
   }
 
   @Test
   void shouldGetVersionsFromFile() {
-    FileSystemDockerImagesReader reader = mockedReader("""
+    FileSystemDockerImagesReader reader = mockedReader(
+      """
       FROM mongo:5.0.9
        FROM mysql:8.0.29
       FROM postgres:14.3
-      """);
+      """
+    );
 
     DockerImageVersion image = reader.get().get(new DockerImageName("mysql"));
 
@@ -43,7 +44,7 @@ class FileSystemDockerImagesReaderTest {
   }
 
   private FileSystemDockerImagesReader mockedReader(String content) {
-    ProjectFilesReader files = mock(ProjectFilesReader.class);
+    ProjectFiles files = mock(ProjectFiles.class);
 
     when(files.readString("/generator/dependencies/Dockerfile")).thenReturn(content);
 

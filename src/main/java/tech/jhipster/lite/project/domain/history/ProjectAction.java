@@ -2,9 +2,9 @@ package tech.jhipster.lite.project.domain.history;
 
 import java.time.Instant;
 import java.util.Map;
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class ProjectAction {
+public final class ProjectAction {
 
   private final ModuleSlug module;
   private final Instant date;
@@ -36,7 +36,8 @@ public class ProjectAction {
     return parameters;
   }
 
-  public static class ProjectActionBuilder implements ProjectActionModuleBuilder, ProjectActionDateBuilder, ProjectActionParametersBuilder {
+  private static final class ProjectActionBuilder
+    implements ProjectActionModuleBuilder, ProjectActionDateBuilder, ProjectActionParametersBuilder {
 
     private ModuleSlug module;
     private Instant date;

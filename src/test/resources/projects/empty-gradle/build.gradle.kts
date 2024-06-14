@@ -1,37 +1,51 @@
+// jhipster-needle-gradle-imports
+
 plugins {
   java
+  // jhipster-needle-gradle-plugins
 }
+
+// jhipster-needle-gradle-properties
 
 java {
   toolchain {
-    languageVersion.set(JavaLanguageVersion.of(17))
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
 
+// jhipster-needle-gradle-plugins-configurations
+
 repositories {
   mavenCentral()
-  // jhipster-needle-gradle-repository
+  // jhipster-needle-gradle-repositories
 }
 
 group = "tech.jhipster.chips"
 version = "0.0.1-SNAPSHOT"
 
-ext {
-  // jhipster-needle-gradle-property
-}
+val profiles = (project.findProperty("profiles") as String? ?: "")
+  .split(",")
+  .map { it.trim() }
+  .filter { it.isNotEmpty() }
+// jhipster-needle-profile-activation
 
 dependencies {
-  // jhipster-needle-gradle-add-dependency
-  // jhipster-needle-gradle-add-dependency-test
+  // jhipster-needle-gradle-implementation-dependencies
+  // jhipster-needle-gradle-compile-dependencies
+  // jhipster-needle-gradle-runtime-dependencies
+  // jhipster-needle-gradle-test-dependencies
 }
+
+// jhipster-needle-gradle-free-configuration-blocks
 
 tasks.test {
   filter {
-    includeTestsMatching("*Test.*")
-    excludeTestsMatching("*IntTest.*")
-    excludeTestsMatching("*IT.*")
+    includeTestsMatching("**Test*")
+    excludeTestsMatching("**IT*")
+    excludeTestsMatching("**CucumberTest*")
   }
   useJUnitPlatform()
+  // jhipster-needle-gradle-tasks-test
 }
 
 val integrationTest = task<Test>("integrationTest") {
@@ -39,9 +53,8 @@ val integrationTest = task<Test>("integrationTest") {
   group = "verification"
   shouldRunAfter("test")
   filter {
-    includeTestsMatching("*IntTest.*")
-    includeTestsMatching("*IT.*")
-    excludeTestsMatching("*Test.*")
+    includeTestsMatching("**IT*")
+    includeTestsMatching("**CucumberTest*")
   }
   useJUnitPlatform()
 }

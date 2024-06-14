@@ -1,8 +1,8 @@
-package {{packageName}}.authentication.infrastructure.primary;
+package {{packageName}}.shared.authentication.infrastructure.primary;
 
 import static org.assertj.core.api.Assertions.*;
 
-import {{packageName}}.authentication.domain.Role;
+import {{packageName}}.shared.authentication.domain.Role;
 import io.cucumber.java.en.Given;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -79,7 +79,7 @@ public class AuthenticationSteps {
     return "Trying to authenticate an unknown user: " + user;
   }
 
-  private static class UsersBuilder {
+  private static final class UsersBuilder {
 
     private final SecretKey key;
     private final Map<String, User> users = new ConcurrentHashMap<>();
@@ -114,10 +114,10 @@ public class AuthenticationSteps {
     private String token() {
       return Jwts
         .builder()
-        .setSubject(username)
+        .subject(username)
         .signWith(key)
         .claim("auth", authorities)
-        .setExpiration(Date.from(Instant.now().plusSeconds(300)))
+        .expiration(Date.from(Instant.now().plusSeconds(300)))
         .compact();
     }
   }

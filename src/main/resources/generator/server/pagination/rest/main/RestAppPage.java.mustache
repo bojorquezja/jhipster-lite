@@ -1,16 +1,16 @@
-package {{packageName}}.pagination.infrastructure.primary;
+package {{packageName}}.shared.pagination.infrastructure.primary;
 
 import java.util.List;
 import java.util.function.Function;
 
-import {{packageName}}.error.domain.Assert;
-import {{packageName}}.pagination.domain.{{baseName}}Page;
+import {{packageName}}.shared.error.domain.Assert;
+import {{packageName}}.shared.pagination.domain.{{baseName}}Page;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 
 @Schema(name = "Page", description = "Paginated content")
-public class Rest{{baseName}}Page<T> {
+public final class Rest{{baseName}}Page<T> {
 
   private final List<T> content;
   private final int currentPage;
@@ -34,7 +34,7 @@ public class Rest{{baseName}}Page<T> {
     Assert.notNull("source", source);
     Assert.notNull("mapper", mapper);
 
-    return new Rest{{baseName}}PageBuilder<>(source.content().parallelStream().map(mapper).toList())
+    return new Rest{{baseName}}PageBuilder<>(source.content().stream().map(mapper).toList())
       .currentPage(source.currentPage())
       .pageSize(source.pageSize())
       .totalElementsCount(source.totalElementsCount())
@@ -79,7 +79,7 @@ public class Rest{{baseName}}Page<T> {
     return hasNext;
   }
 
-  private static class Rest{{baseName}}PageBuilder<T> {
+  private static final class Rest{{baseName}}PageBuilder<T> {
 
     private final List<T> content;
     private int currentPage;

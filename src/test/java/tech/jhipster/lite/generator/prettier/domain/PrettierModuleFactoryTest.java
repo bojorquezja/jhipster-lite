@@ -27,10 +27,17 @@ class PrettierModuleFactoryTest {
     JHipsterModule module = factory.buildModule(properties);
 
     assertThatModuleWithFiles(module, packageJsonFile())
-      .hasFiles(".lintstagedrc.js", ".prettierignore")
+      .hasFiles(".prettierignore")
+      .hasFile(".lintstagedrc.cjs")
+      .containing("*.{md,json,yml,html,css,scss,java,xml,feature}")
+      .and()
       .hasFile(".prettierrc")
       .containing("tabWidth: 4")
       .containing("endOfLine: \"crlf\"")
+      .containing("@prettier/plugin-xml")
+      .containing("prettier-plugin-gherkin")
+      .containing("prettier-plugin-java")
+      .containing("prettier-plugin-packagejson")
       .and()
       .hasExecutableFiles(".husky/pre-commit")
       .hasFile("package.json")
@@ -38,16 +45,16 @@ class PrettierModuleFactoryTest {
       .containing(nodeDependency("husky"))
       .containing(nodeDependency("lint-staged"))
       .containing(nodeDependency("prettier"))
+      .containing(nodeDependency("prettier-plugin-gherkin"))
       .containing(nodeDependency("prettier-plugin-java"))
       .containing(nodeDependency("prettier-plugin-packagejson"))
-      .containing(nodeScript("prepare", "husky install"))
-      .containing(nodeScript("prettier:check", "prettier --check \\\"{,src/**/}*.{md,json,yml,html,js,ts,tsx,css,scss,vue,java,xml}\\\""))
-      .containing(nodeScript("prettier:format", "prettier --write \\\"{,src/**/}*.{md,json,yml,html,js,ts,tsx,css,scss,vue,java,xml}\\\""));
+      .containing(nodeScript("prepare", "husky"))
+      .containing(nodeScript("prettier:check", "prettier --check ."))
+      .containing(nodeScript("prettier:format", "prettier --write ."));
   }
 
   private JHipsterModuleProperties properties(String folder) {
-    return JHipsterModulesFixture
-      .propertiesBuilder(folder)
+    return JHipsterModulesFixture.propertiesBuilder(folder)
       .projectBaseName("testProject")
       .put("projectName", "Test Project")
       .put("indentSize", 4)

@@ -50,6 +50,7 @@
                   @over="emphasizeModule(module.slug())"
                   @out="deEmphasizeModule()"
                   @clicked="toggleModule(module.slug())"
+                  @apply="applyModule(module.slug())"
                 />
               </li>
             </ul>
@@ -62,6 +63,7 @@
             @over="emphasizeModule(element.slug())"
             @out="deEmphasizeModule()"
             @clicked="toggleModule(element.slug())"
+            @apply="applyModule(element.slug())"
             v-else
           />
         </li>
@@ -112,7 +114,6 @@
               class="jhlite-button -block"
               data-selector="modules-apply-new-button"
               :disabled="disabledNewApplication()"
-              tabindex="5"
               @click="applyNewModules"
             >
               <IconVue name="play-circled" aria-label="Icon play circled" />
@@ -125,7 +126,6 @@
               class="jhlite-button -block"
               data-selector="modules-apply-all-button"
               :disabled="disabledAllApplication()"
-              tabindex="5"
               @click="applyAllModules"
             >
               <IconVue name="play-circled" aria-label="Icon play circled" />
@@ -137,3 +137,4 @@
     </div>
   </div>
 </div>
+<LandscapeMiniMapVue :landscapeContainer="landscapeContainer" v-if="canLoadMiniMap" />

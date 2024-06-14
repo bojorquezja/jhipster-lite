@@ -2,21 +2,22 @@ package tech.jhipster.lite.generator.server.springboot.database.cassandra.domain
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.LogLevel;
 import tech.jhipster.lite.module.domain.docker.DockerImages;
 import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
+import tech.jhipster.lite.module.domain.javaproperties.PropertyKey;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class CassandraModuleFactory {
 
   private static final JHipsterSource SOURCE = from("server/springboot/database/cassandra");
-  private static final String CASSANDRA_SECONDARY = "technical/infrastructure/secondary/cassandra";
-  private static final String DOCKER_COMPOSE_COMMAND = "docker compose -f src/main/docker/cassandra.yml up -d";
+  private static final String CASSANDRA_SECONDARY = "wire/cassandra/infrastructure/secondary";
   private static final String DC = "datacenter1";
+  private static final PropertyKey LOCAL_DATACENTER_PROPERTY = propertyKey("spring.cassandra.local-datacenter");
   private final DockerImages dockerImages;
 
   public CassandraModuleFactory(DockerImages dockerImages) {
@@ -36,7 +37,9 @@ public class CassandraModuleFactory {
         .addDependency(testContainerDependency())
         .and()
       .documentation(documentationTitle("Cassandra"), SOURCE.file("cassandra.md"))
-      .startupCommand(DOCKER_COMPOSE_COMMAND)
+      .startupCommands()
+        .dockerCompose("src/main/docker/cassandra.yml")
+        .and()
       .context()
         .put("cassandraDockerImage", dockerImages.get("cassandra").fullName())
         .put("DC", DC)
@@ -56,17 +59,16 @@ public class CassandraModuleFactory {
         .and()
       .springMainProperties()
         .set(propertyKey("spring.cassandra.contact-points"), propertyValue("127.0.0.1"))
-        .set(propertyKey("#spring.cassandra.keyspace-name"), propertyValue("yourKeyspace"))
-        .set(propertyKey("spring.cassandra.port"), propertyValue("9042"))
-        .set(propertyKey("spring.cassandra.local-datacenter"), propertyValue(DC))
+        .comment(LOCAL_DATACENTER_PROPERTY, comment("keyspace-name: yourKeyspace"))
+        .set(propertyKey("spring.cassandra.port"), propertyValue(9042))
+        .set(LOCAL_DATACENTER_PROPERTY, propertyValue(DC))
         .set(propertyKey("spring.cassandra.schema-action"), propertyValue("none"))
         .and()
       .springTestProperties()
         .set(propertyKey("spring.cassandra.port"), propertyValue("${TEST_CASSANDRA_PORT}"))
         .set(propertyKey("spring.cassandra.contact-points"), propertyValue("${TEST_CASSANDRA_CONTACT_POINT}"))
-        .set(propertyKey("spring.cassandra.local-datacenter"), propertyValue("${TEST_CASSANDRA_DC}"))
+        .set(LOCAL_DATACENTER_PROPERTY, propertyValue("${TEST_CASSANDRA_DC}"))
         .set(propertyKey("spring.cassandra.keyspace-name"), propertyValue("${TEST_CASSANDRA_KEYSPACE}"))
-        .set(propertyKey("spring.cassandra.schema-action"), propertyValue("none"))
         .and()
       .springTestFactories()
         .append(propertyKey("org.springframework.context.ApplicationListener"), propertyValue(packageName + "TestCassandraManager"))

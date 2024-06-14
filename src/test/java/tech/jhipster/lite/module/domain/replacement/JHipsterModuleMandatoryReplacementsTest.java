@@ -7,7 +7,6 @@ import static tech.jhipster.lite.module.domain.replacement.ReplacementCondition.
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collection;
 import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.UnitTest;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
@@ -19,28 +18,22 @@ class JHipsterModuleMandatoryReplacementsTest {
 
   @Test
   void shouldNotApplyReplacementOnUnknownCurrentValue() {
-    assertThatThrownBy(() -> replaceIn("src/test/resources/projects/maven/pom.xml"))
-      .isExactlyInstanceOf(UnknownCurrentValueException.class);
+    assertThatThrownBy(() -> replaceIn("src/test/resources/projects/maven/pom.xml")).isExactlyInstanceOf(
+      UnknownCurrentValueException.class
+    );
   }
 
   private static String replaceIn(String file) {
     JHipsterProjectFolder folder = new JHipsterProjectFolder("src/test/resources/projects");
     JHipsterModuleBuilder module = moduleBuilder(JHipsterModulesFixture.propertiesBuilder(folder.get()).build());
 
-    Collection<ContentReplacer> replacements = JHipsterModuleMandatoryReplacements
-      .builder(module)
+    return JHipsterModuleMandatoryReplacementsFactory.builder(module)
       .in(new JHipsterProjectFilePath(file))
       .add(new TextReplacer(always(), "old"), "new")
       .and()
       .build()
-      .replacements();
-
-    String result = readContent(file);
-    for (ContentReplacer replacement : replacements) {
-      result = replacement.apply(result);
-    }
-
-    return result;
+      .replacers()
+      .reduce(readContent(file), (content, replacer) -> replacer.apply(content), (first, second) -> first);
   }
 
   private static String readContent(String file) {

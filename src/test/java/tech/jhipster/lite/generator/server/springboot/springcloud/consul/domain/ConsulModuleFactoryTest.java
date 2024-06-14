@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.server.springboot.springcloud.consul.domain;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
 
 import org.junit.jupiter.api.Test;
@@ -28,8 +28,7 @@ class ConsulModuleFactoryTest {
 
   @Test
   void shouldCreateModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("tech.jhipster.burger")
       .projectBaseName("burger")
       .build();
@@ -38,7 +37,7 @@ class ConsulModuleFactoryTest {
 
     JHipsterModule module = factory.buildModule(properties);
 
-    assertThatModuleWithFiles(module, pomFile(), readmeFile())
+    assertThatModuleWithFiles(module, pomFile(), logbackFile(), testLogbackFile(), readmeFile())
       .hasFile("src/main/docker/consul.yml")
       .containing("consul:1.12.2")
       .containing("jhipster/consul-config-loader:v0.4.1")
@@ -52,8 +51,8 @@ class ConsulModuleFactoryTest {
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
-                <scope>import</scope>
                 <type>pom</type>
+                <scope>import</scope>
               </dependency>
         """
       )
@@ -82,24 +81,62 @@ class ConsulModuleFactoryTest {
         """
       )
       .and()
-      .hasFile("src/main/resources/config/bootstrap.properties")
-      .containing("spring.cloud.consul.discovery.health-check-path=${server.servlet.context-path:}/management/health")
-      .containing("spring.cloud.consul.discovery.tags[0]=version=@project.version@")
-      .containing("spring.cloud.consul.discovery.tags[1]=context-path=${server.servlet.context-path:}")
-      .containing("spring.cloud.consul.discovery.tags[2]=profile=${spring.profiles.active:}")
-      .containing("spring.cloud.consul.discovery.tags[3]=git-version=${git.commit.id.describe:}")
-      .containing("spring.cloud.consul.discovery.tags[4]=git-commit=${git.commit.id.abbrev:}")
-      .containing("spring.cloud.consul.discovery.tags[5]=git-branch=${git.branch:}")
+      .hasFile("src/main/resources/config/bootstrap.yml")
+      .containing(
+        """
+        spring:
+          application:
+            name: burger
+          cloud:
+            compatibility-verifier:
+              enabled: false
+            consul:
+              config:
+                format: yaml
+                profile-separator: '-'
+                watch:
+                  enabled: false
+              discovery:
+                health-check-path: ${server.servlet.context-path:}/management/health
+                instance-id: burger:${spring.application.instance-id:${random.value}}
+                prefer-ip-address: true
+                service-name: burger
+                tags[0]: version=@project.version@
+                tags[1]: context-path=${server.servlet.context-path:}
+                tags[2]: profile=${spring.profiles.active:}
+                tags[3]: git-version=${git.build.version:}
+                tags[4]: git-commit=${git.commit.id.abbrev:}
+                tags[5]: git-branch=${git.branch:}
+              host: localhost
+              port: 8500
+        """
+      )
       .and()
-      .hasFile("src/test/resources/config/bootstrap.properties")
-      .containing("spring.cloud.consul.enabled=false")
-      .containing("spring.cloud.compatibility-verifier.enabled=false")
+      .hasFile("src/test/resources/config/bootstrap.yml")
+      .containing(
+        """
+        spring:
+          cloud:
+            compatibility-verifier:
+              enabled: false
+            consul:
+              enabled: false
+        """
+      )
       .and()
       .hasFile("README.md")
-      .containing("""
+      .containing(
+        """
         ```bash
         docker compose -f src/main/docker/consul.yml up -d
         ```
-        """);
+        """
+      )
+      .and()
+      .hasFile("src/main/resources/logback-spring.xml")
+      .containing("  <logger name=\"org.apache\" level=\"ERROR\" />")
+      .and()
+      .hasFile("src/test/resources/logback.xml")
+      .containing("  <logger name=\"org.apache\" level=\"ERROR\" />");
   }
 }

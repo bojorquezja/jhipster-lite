@@ -16,8 +16,7 @@ class AngularModuleFactoryTest {
 
   @Test
   void shouldCreateAngularModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .projectBaseName("jhiTest")
       .build();
 
@@ -47,22 +46,28 @@ class AngularModuleFactoryTest {
       .containing(nodeDependency("@typescript-eslint/eslint-plugin"))
       .containing(nodeDependency("@typescript-eslint/parser"))
       .containing(nodeDependency("eslint"))
-      .containing("\"ng\": \"ng\"")
-      .containing("\"watch\": \"ng build --watch --configuration development\"")
-      .containing("\"start\": \"ng serve\"")
-      .containing("\"build\": \"ng build --output-path=target/classes/static\"")
-      .containing("\"test\": \"ng test --coverage\"")
-      .containing("\"lint\": \"ng lint\"")
-      .containing("  \"jestSonar\": {\n    \"reportPath\": \"target/test-results\",\n    \"reportFile\": \"TESTS-results-sonar.xml\"\n  },")
+      .containing(nodeScript("ng", "ng"))
+      .containing(nodeScript("watch", "ng build --watch --configuration development"))
+      .containing(nodeScript("start", "ng serve"))
+      .containing(nodeScript("build", "ng build"))
+      .containing(nodeScript("test", "npm run test:watch"))
+      .containing(nodeScript("test:watch", "ng test --watch"))
+      .containing(nodeScript("test:coverage", "ng test --coverage"))
+      .containing(nodeScript("lint", "ng lint"))
+      .containing("  \"jestSonar\": {\n    \"reportPath\": \"target/test-results\",\n    \"reportFile\": \"TESTS-results-sonar.xml\"\n  }")
       .and()
-      .hasFile(".lintstagedrc.js")
+      .hasFile(".gitignore")
+      .containing(".angular/")
+      .containing(".nx/")
+      .and()
+      .hasFile(".lintstagedrc.cjs")
       .containing(
         """
-            module.exports = {
-              '{src/**/,}*.{js,ts,tsx,vue}': ['eslint --fix'],
-              '{src/**/,}*.{md,json,yml,html,css,scss,java,xml}': ['prettier --write'],
-            };
-            """
+        module.exports = {
+          '{src/**/,}*.{js,ts,tsx,vue}': ['eslint --fix'],
+          '*.{md,json,yml,html,css,scss,java,xml,feature}': ['prettier --write'],
+        };
+        """
       )
       .and()
       .hasFile("src/main/webapp/app/app.component.ts")
@@ -76,6 +81,7 @@ class AngularModuleFactoryTest {
         "tsconfig.app.json",
         "tsconfig.spec.json",
         "proxy.conf.json",
+        ".npmrc",
         ".eslintignore",
         ".eslintrc.json"
       )
@@ -96,6 +102,32 @@ class AngularModuleFactoryTest {
         "environment.prod.spec.ts",
         "environment.spec.ts"
       )
-      .hasPrefixedFiles("src/main/webapp", "index.html", "main.ts", "polyfills.ts", "styles.css");
+      .hasPrefixedFiles("src/main/webapp", "index.html", "main.ts", "styles.css");
+  }
+
+  @Test
+  void shouldProxyBeUpdatedWhenServerPortPropertyNotDefault() {
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .projectBaseName("jhiTest")
+      .put("serverPort", 8081)
+      .build();
+
+    JHipsterModule module = factory.buildModule(properties);
+    assertThatModuleWithFiles(module, packageJsonFile(), lintStagedConfigFile())
+      .hasFile("proxy.conf.json")
+      .containing("\"target\": \"http://localhost:8081\"")
+      .notContaining("\"target\": \"http://localhost:8080\"");
+  }
+
+  @Test
+  void shouldProxyBeDefaultWhenServerPortPropertyMissing() {
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
+      .projectBaseName("jhiTest")
+      .build();
+
+    JHipsterModule module = factory.buildModule(properties);
+    assertThatModuleWithFiles(module, packageJsonFile(), lintStagedConfigFile())
+      .hasFile("proxy.conf.json")
+      .containing("\"target\": \"http://localhost:8080\"");
   }
 }

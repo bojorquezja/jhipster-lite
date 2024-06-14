@@ -1,6 +1,7 @@
 package tech.jhipster.lite.generator.server.springboot.apidocumentation.springdocoauth.domain;
 
-import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.assertThatModuleWithFiles;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.pomFile;
 
 import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.TestFileUtils;
@@ -16,25 +17,41 @@ class SpringDocOauth2ModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
+      .put("keycloakRealmName", "beer")
       .build();
 
     JHipsterModule module = factory.buildModule(properties);
 
     //@formatter:off
     assertThatModuleWithFiles(module, pomFile())
-      .hasFiles("src/main/java/com/jhipster/test/technical/infrastructure/primary/springdoc/SpringdocOAuth2Configuration.java")
-      .hasFile("src/main/resources/config/application.properties")
-        .containing("springdoc.swagger-ui.oauth.client-id=web_app")
-        .containing("springdoc.swagger-ui.oauth.realm=jhipster")
-        .containing("springdoc.oauth2.authorization-url=http://localhost:9080/realms/jhipster/protocol/openid-connect/auth")
-        .and()
-      .hasFile("src/test/resources/config/application.properties")
-        .containing("springdoc.swagger-ui.oauth.client-id=web_app")
-        .containing("springdoc.swagger-ui.oauth.realm=jhipster")
-        .containing("springdoc.oauth2.authorization-url=http://localhost:9080/realms/jhipster/protocol/openid-connect/auth");
+      .hasFiles("src/main/java/com/jhipster/test/wire/springdoc/infrastructure/primary/SpringdocOAuth2Configuration.java")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        springdoc:
+          oauth2:
+            authorization-url: http://localhost:9080/realms/beer/protocol/openid-connect/auth
+          swagger-ui:
+            oauth:
+              client-id: web_app
+              realm: beer
+        """
+      )
+      .and()
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        springdoc:
+          oauth2:
+            authorization-url: http://localhost:9080/realms/beer/protocol/openid-connect/auth
+          swagger-ui:
+            oauth:
+              client-id: web_app
+              realm: beer
+        """
+      );
     //@formatter:on
   }
 }

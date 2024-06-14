@@ -16,8 +16,7 @@ class VueModulesFactoryTest {
 
   @Test
   void shouldCreateVueModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .projectBaseName("jhiTest")
       .basePackage("com.jhipster.test")
       .build();
@@ -29,7 +28,6 @@ class VueModulesFactoryTest {
       .hasFiles("documentation/vue.md")
       .hasFile("package.json")
         .containing(nodeDependency("vue"))
-        .containing(nodeDependency("@rushstack/eslint-patch"))
         .containing(nodeDependency("@typescript-eslint/parser"))
         .containing(nodeDependency("@vitejs/plugin-vue"))
         .containing(nodeDependency("@vue/eslint-config-typescript"))
@@ -48,25 +46,26 @@ class VueModulesFactoryTest {
         .containing(nodeDependency("sinon"))
         .containing(nodeDependency("axios"))
         .containing(nodeDependency("vue-router"))
-        .containing("\"build\": \"vue-tsc -p tsconfig.build.json --noEmit && vite build --emptyOutDir\"")
-        .containing("\"dev\": \"vite\"")
-        .containing("\"lint\": \"eslint --ext .js,.ts,.vue src\"")
-        .containing("\"preview\": \"vite preview\"")
-        .containing("\"start\": \"vite\"")
-        .containing("\"test\": \"vitest run --coverage\"")
-        .containing("\"test:watch\": \"vitest --\"")
+        .containing(nodeScript("build", "vue-tsc -p tsconfig.build.json --noEmit && vite build --emptyOutDir"))
+        .containing(nodeScript("dev", "vite"))
+        .containing(nodeScript("lint", "eslint --ext .js,.ts,.vue src/main/webapp/app/**/*"))
+        .containing(nodeScript("preview", "vite preview"))
+        .containing(nodeScript("start", "vite"))
+        .containing(nodeScript("test", "npm run test:watch"))
+        .containing(nodeScript("test:coverage", "vitest run --coverage"))
+        .containing(nodeScript("test:watch", "vitest --"))
         .and()
-      .hasFile(".lintstagedrc.js")
+      .hasFile(".lintstagedrc.cjs")
         .containing(
           """
             module.exports = {
               '{src/**/,}*.{js,ts,tsx,vue}': ['eslint --fix'],
-              '{src/**/,}*.{md,json,yml,html,css,scss,java,xml}': ['prettier --write'],
+              '*.{md,json,yml,html,css,scss,java,xml,feature}': ['prettier --write'],
             };
             """
         )
       .and()
-      .hasPrefixedFiles("", ".eslintignore", ".eslintrc.js", "tsconfig.json", "tsconfig.build.json", "vite.config.ts", "vitest.config.ts")
+      .hasPrefixedFiles("", ".eslintignore", ".npmrc", ".eslintrc.cjs", "tsconfig.json", "tsconfig.build.json", "vite.config.ts", "vitest.config.ts")
       .hasFiles("src/main/webapp/app/http/AxiosHttp.ts")
       .hasPrefixedFiles("src/test/javascript/spec/http", "AxiosHttp.spec.ts", "AxiosHttpStub.ts", "AxiosStub.ts")
       .hasFiles("src/main/webapp/index.html")
@@ -99,8 +98,7 @@ class VueModulesFactoryTest {
 
   @Test
   void shouldCreatePiniaModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .build();
 
@@ -121,10 +119,10 @@ class VueModulesFactoryTest {
       .containing("import piniaPersist from 'pinia-plugin-persist';")
       .containing(
         """
-                const pinia = createPinia();
-                pinia.use(piniaPersist);
-                app.use(pinia);
-                """
+        const pinia = createPinia();
+        pinia.use(piniaPersist);
+        app.use(pinia);
+        """
       );
   }
 }

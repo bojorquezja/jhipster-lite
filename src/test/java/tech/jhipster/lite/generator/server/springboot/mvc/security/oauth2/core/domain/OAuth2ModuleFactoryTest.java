@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.server.springboot.mvc.security.oauth2.core.domain;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
 
 import org.junit.jupiter.api.Test;
@@ -28,10 +28,10 @@ class OAuth2ModuleFactoryTest {
 
   @Test
   void shouldCreateOAuth2Module() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .projectBaseName("myapp")
+      .put("keycloakRealmName", "my-test-realm")
       .build();
 
     when(dockerImages.get("quay.io/keycloak/keycloak")).thenReturn(new DockerImageVersion("quay.io/keycloak/keycloak", "1.1.1"));
@@ -39,16 +39,16 @@ class OAuth2ModuleFactoryTest {
     JHipsterModule module = factory.buildModule(properties);
 
     assertThatModuleWithFiles(module, pomFile(), integrationTestFile(), readmeFile())
-      .hasPrefixedFiles("src/main/java/com/jhipster/test/authentication/domain", "Role.java", "Roles.java", "Username.java")
+      .hasPrefixedFiles("src/main/java/com/jhipster/test/shared/authentication/domain", "Role.java", "Roles.java", "Username.java")
       .hasPrefixedFiles(
-        "src/main/java/com/jhipster/test/authentication/application",
+        "src/main/java/com/jhipster/test/shared/authentication/application",
         "AuthenticatedUser.java",
         "NotAuthenticatedUserException.java",
         "AuthenticationException.java",
         "UnknownAuthenticationException.java"
       )
       .hasPrefixedFiles(
-        "src/main/java/com/jhipster/test/authentication/infrastructure/primary",
+        "src/main/java/com/jhipster/test/shared/authentication/infrastructure/primary",
         "ApplicationSecurityProperties.java",
         "AudienceValidator.java",
         "AuthenticationExceptionAdvice.java",
@@ -58,10 +58,15 @@ class OAuth2ModuleFactoryTest {
         "OAuth2Configuration.java",
         "SecurityConfiguration.java"
       )
-      .hasPrefixedFiles("src/test/java/com/jhipster/test/authentication/domain", "RolesTest.java", "RoleTest.java", "UsernameTest.java")
-      .hasFiles("src/test/java/com/jhipster/test/authentication/application/AuthenticatedUserTest.java")
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/authentication/infrastructure/primary",
+        "src/test/java/com/jhipster/test/shared/authentication/domain",
+        "RolesTest.java",
+        "RoleTest.java",
+        "UsernameTest.java"
+      )
+      .hasFiles("src/test/java/com/jhipster/test/shared/authentication/application/AuthenticatedUserTest.java")
+      .hasPrefixedFiles(
+        "src/test/java/com/jhipster/test/shared/authentication/infrastructure/primary",
         "AccountExceptionResource.java",
         "ApplicationSecurityPropertiesTest.java",
         "AudienceValidatorTest.java",
@@ -80,7 +85,7 @@ class OAuth2ModuleFactoryTest {
       .hasFile("src/main/docker/keycloak-realm-config/jhipster-realm.json")
       .containing("1.1.1")
       .and()
-      .hasFile("src/main/java/com/jhipster/test/authentication/package-info.java")
+      .hasFile("src/main/java/com/jhipster/test/shared/authentication/package-info.java")
       .and()
       .hasFile("pom.xml")
       .containing("spring-boot-starter-security")
@@ -88,20 +93,48 @@ class OAuth2ModuleFactoryTest {
       .containing("spring-security-test")
       .containing("spring-boot-starter-oauth2-resource-server")
       .and()
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("spring.security.oauth2.client.provider.oidc.issuer-uri=http://localhost:9080/realms/jhipster")
-      .containing("spring.security.oauth2.client.registration.oidc.client-id=web_app")
-      .containing("spring.security.oauth2.client.registration.oidc.client-secret=web_app")
-      .containing("spring.security.oauth2.client.registration.oidc.scope=openid,profile,email")
-      .containing("application.security.oauth2.audience=account,api://default")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        // language=yaml
+        """
+        application:
+          security:
+            oauth2:
+              audience: account,api://default
+        spring:
+          security:
+            oauth2:
+              client:
+                provider:
+                  oidc:
+                    issuer-uri: http://localhost:9080/realms/my-test-realm
+                registration:
+                  oidc:
+                    client-id: web_app
+                    client-secret: web_app
+                    scope: openid,profile,email
+        """
+      )
       .and()
-      .hasFile("src/test/resources/config/application.properties")
-      .containing("spring.main.allow-bean-definition-overriding=true")
-      .containing("spring.security.oauth2.client.provider.oidc.issuer-uri=http://DO_NOT_CALL:9080/realms/jhipster")
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        // language=yaml
+        """
+        spring:
+          main:
+            allow-bean-definition-overriding: true
+          security:
+            oauth2:
+              client:
+                provider:
+                  oidc:
+                    issuer-uri: http://DO_NOT_CALL:9080/realms/my-test-realm
+        """
+      )
       .and()
       .hasFile("src/test/java/com/jhipster/test/IntegrationTest.java")
       .containing("@SpringBootTest(classes = { MyappApp.class, TestSecurityConfiguration.class })")
-      .containing("import com.jhipster.test.authentication.infrastructure.primary.TestSecurityConfiguration;")
+      .containing("import com.jhipster.test.shared.authentication.infrastructure.primary.TestSecurityConfiguration;")
       .containing("@WithMockUser")
       .containing("import org.springframework.security.test.context.support.WithMockUser;")
       .and()
@@ -109,7 +142,7 @@ class OAuth2ModuleFactoryTest {
       .containing("docker compose -f src/main/docker/keycloak.yml up -d");
   }
 
-  private ModuleFile integrationTestFile() {
+  private static ModuleFile integrationTestFile() {
     return file("src/test/resources/projects/files/IntegrationTest.java", "src/test/java/com/jhipster/test/IntegrationTest.java");
   }
 }

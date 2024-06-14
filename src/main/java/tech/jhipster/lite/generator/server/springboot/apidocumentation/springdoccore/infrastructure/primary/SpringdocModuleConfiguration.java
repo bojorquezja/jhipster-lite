@@ -1,7 +1,8 @@
 package tech.jhipster.lite.generator.server.springboot.apidocumentation.springdoccore.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteFeatureSlug.*;
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.SPRINGDOC;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.SPRING_MVC_SERVER;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,8 +23,7 @@ class SpringdocModuleConfiguration {
 
   @Bean
   JHipsterModuleResource springdocMvcModule(SpringdocApplicationService springdocApplicationService) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SPRINGDOC_MVC_OPENAPI)
       .propertiesDefinition(buildPropertiesDefinition())
       .apiDoc(API_GROUP, "Add springdoc-openapi for spring MVC")
@@ -34,8 +34,7 @@ class SpringdocModuleConfiguration {
 
   @Bean
   JHipsterModuleResource springdocWebfluxModule(SpringdocApplicationService springdocApplicationService) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SPRINGDOC_WEBFLUX_OPENAPI)
       .propertiesDefinition(buildPropertiesDefinition())
       .apiDoc(API_GROUP, "Add springdoc-openapi for webflux")
@@ -45,6 +44,11 @@ class SpringdocModuleConfiguration {
   }
 
   private JHipsterModulePropertiesDefinition buildPropertiesDefinition() {
-    return JHipsterModulePropertiesDefinition.builder().addBasePackage().addProjectBaseName().addIndentation().build();
+    return JHipsterModulePropertiesDefinition.builder()
+      .addBasePackage()
+      .addProjectBaseName()
+      .addIndentation()
+      .addSpringConfigurationFormat()
+      .build();
   }
 }

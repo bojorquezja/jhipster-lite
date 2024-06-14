@@ -18,14 +18,14 @@ class AngularOauth2ModuleFactoryTest {
   void shouldBuildModuleWithEmptyAngularFile() {
     assertAngularOAuthModule(emptyAngularJsonFile())
       .hasFile("angular.json")
-      .containing("\"allowedCommonJsDependencies\": [\"keycloak-js\"]");
+      .containing("\"allowedCommonJsDependencies\": [\"base64-js\", \"js-sha256\", \"keycloak-js\"]");
   }
 
   @Test
   void shouldBuildModuleWithAngularFileWithAllowedDependencies() {
     assertAngularOAuthModule(angularJsonFile())
       .hasFile("angular.json")
-      .containing("\"allowedCommonJsDependencies\": [\"dummy.js\", \"keycloak-js\"]");
+      .containing("\"allowedCommonJsDependencies\": [\"dummy.js\", \"base64-js\", \"js-sha256\", \"keycloak-js\"]");
   }
 
   private static JHipsterModuleAsserter assertAngularOAuthModule(ModuleFile angularJson) {
@@ -58,23 +58,23 @@ class AngularOauth2ModuleFactoryTest {
       .hasFile("src/main/webapp/environments/environment.ts")
       .containing(
         """
-                  keycloak: {
-                    url: 'http://localhost:9080',
-                    realm: 'jhipster',
-                    client_id: 'web_app'
-                  },
-                """
+          keycloak: {
+            url: 'http://localhost:9080',
+            realm: 'jhipster',
+            client_id: 'web_app'
+          },
+        """
       )
       .and()
       .hasFile("src/main/webapp/environments/environment.prod.ts")
       .containing(
         """
-                  keycloak: {
-                    url: 'http://localhost:9080',
-                    realm: 'jhipster',
-                    client_id: 'web_app'
-                  },
-                """
+          keycloak: {
+            url: 'http://localhost:9080',
+            realm: 'jhipster',
+            client_id: 'web_app'
+          },
+        """
       )
       .and()
       .hasFile("src/main/webapp/app/app.component.html")

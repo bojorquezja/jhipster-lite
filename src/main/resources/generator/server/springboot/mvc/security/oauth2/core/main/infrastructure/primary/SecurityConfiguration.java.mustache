@@ -1,9 +1,11 @@
-package {{packageName}}.authentication.infrastructure.primary;
+package {{packageName}}.shared.authentication.infrastructure.primary;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.*;
 
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +16,6 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
@@ -31,47 +32,34 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
 import org.springframework.web.filter.CorsFilter;
-
-import {{packageName}}.authentication.domain.Role;
-import {{packageName}}.common.domain.Generated;
-
-import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+import {{packageName}}.shared.authentication.domain.Role;
+import {{packageName}}.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true)
-public class SecurityConfiguration {
+@EnableMethodSecurity(securedEnabled = true)
+class SecurityConfiguration {
 
   private static final int TIMEOUT = 2000;
 
   private final ApplicationSecurityProperties applicationSecurityProperties;
   private final CorsFilter corsFilter;
+  private final HandlerMappingIntrospector introspector;
 
   @Value("${spring.security.oauth2.client.provider.oidc.issuer-uri}")
   private String issuerUri;
 
   public SecurityConfiguration(
     CorsFilter corsFilter,
-    ApplicationSecurityProperties applicationSecurityProperties
+    ApplicationSecurityProperties applicationSecurityProperties,
+    HandlerMappingIntrospector introspector
   ) {
     this.corsFilter = corsFilter;
     this.applicationSecurityProperties = applicationSecurityProperties;
-  }
-
-  @Bean
-  public WebSecurityCustomizer webSecurityCustomizer() {
-    return web ->
-      web
-        .ignoring()
-        .requestMatchers(HttpMethod.OPTIONS, "/**")
-        .requestMatchers("/app/**")
-        .requestMatchers("/i18n/**")
-        .requestMatchers("/content/**")
-        .requestMatchers("/swagger-ui/**")
-        .requestMatchers("/swagger-ui.html")
-        .requestMatchers("/v3/api-docs/**")
-        .requestMatchers("/test/**");
+    this.introspector = introspector;
   }
 
   @Bean
@@ -88,15 +76,23 @@ public class SecurityConfiguration {
           permissions.policy("camera=(), fullscreen=(self), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), sync-xhr=()"))
       )
       .authorizeHttpRequests(authz -> authz
-        .requestMatchers("/api/authenticate").permitAll()
-        .requestMatchers("/api/auth-info").permitAll()
-        .requestMatchers("/api/admin/**").hasAuthority(Role.ADMIN.key())
-        .requestMatchers("/api/**").authenticated()
-        .requestMatchers("/management/health").permitAll()
-        .requestMatchers("/management/health/**").permitAll()
-        .requestMatchers("/management/info").permitAll()
-        .requestMatchers("/management/prometheus").permitAll()
-        .requestMatchers("/management/**").hasAuthority(Role.ADMIN.key())
+        .requestMatchers(antMatcher(HttpMethod.OPTIONS, "/**")).permitAll()
+        .requestMatchers(antMatcher("/app/**")).permitAll()
+        .requestMatchers(antMatcher("/i18n/**")).permitAll()
+        .requestMatchers(antMatcher("/content/**")).permitAll()
+        .requestMatchers(antMatcher("/swagger-ui/**")).permitAll()
+        .requestMatchers(antMatcher("/swagger-ui.html")).permitAll()
+        .requestMatchers(antMatcher("/v3/api-docs/**")).permitAll()
+        .requestMatchers(antMatcher("/test/**")).permitAll()
+        .requestMatchers(new MvcRequestMatcher(introspector, "/api/authenticate")).permitAll()
+        .requestMatchers(new MvcRequestMatcher(introspector, "/api/auth-info")).permitAll()
+        .requestMatchers(new MvcRequestMatcher(introspector, "/api/admin/**")).hasAuthority(Role.ADMIN.key())
+        .requestMatchers(new MvcRequestMatcher(introspector, "/api/**")).authenticated()
+        .requestMatchers(new MvcRequestMatcher(introspector, "/management/health")).permitAll()
+        .requestMatchers(new MvcRequestMatcher(introspector, "/management/health/**")).permitAll()
+        .requestMatchers(new MvcRequestMatcher(introspector, "/management/info")).permitAll()
+        .requestMatchers(new MvcRequestMatcher(introspector, "/management/prometheus")).permitAll()
+        .requestMatchers(new MvcRequestMatcher(introspector, "/management/**")).hasAuthority(Role.ADMIN.key())
         .anyRequest().authenticated()
       )
       .oauth2Login(withDefaults())
@@ -137,7 +133,7 @@ public class SecurityConfiguration {
   }
 
   @Bean
-  @Generated(reason = "Only called with a valid client registration repository")
+  @ExcludeFromGeneratedCodeCoverage(reason = "Only called with a valid client registration repository")
   public JwtDecoder jwtDecoder(ClientRegistrationRepository clientRegistrationRepository, RestTemplateBuilder restTemplateBuilder) {
     NimbusJwtDecoder jwtDecoder = JwtDecoders.fromOidcIssuerLocation(issuerUri);
 

@@ -1,6 +1,6 @@
 package tech.jhipster.lite.module.domain.replacement;
 
-import tech.jhipster.lite.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
 
 class UnknownCurrentValueException extends GeneratorException {
 
@@ -9,6 +9,6 @@ class UnknownCurrentValueException extends GeneratorException {
   }
 
   private static String buildMessage(String currentValue, String content) {
-    return new StringBuilder().append("Can't find \"").append(currentValue).append("\" in ").append(content).toString();
+    return "Can't find \"%s\" in %s".formatted(currentValue, content);
   }
 }

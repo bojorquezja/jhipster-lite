@@ -2,10 +2,10 @@ package tech.jhipster.lite.generator.client.common.domain;
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class ClientsModulesFactory {
+public final class ClientsModulesFactory {
 
   private ClientsModulesFactory() {}
 
@@ -16,7 +16,7 @@ public class ClientsModulesFactory {
       .optionalReplacements()
       .in(path("package.json"))
       .and()
-      .in(path(".lintstagedrc.js"))
+      .in(path(".lintstagedrc.cjs"))
       .add(lineBeforeRegex("\\['prettier --write'\\]"), "  '{src/**/,}*.{js,ts,tsx,vue}': ['eslint --fix'],")
       .and()
       .and();

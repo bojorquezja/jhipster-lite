@@ -1,16 +1,19 @@
 package tech.jhipster.lite.module.domain.resource;
 
-import java.util.*;
-import tech.jhipster.lite.error.domain.Assert;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class JHipsterModuleTags {
+public final class JHipsterModuleTags {
 
   private static final Comparator<JHipsterModuleTag> TAG_COMPARATOR = Comparator.comparing(JHipsterModuleTag::get);
 
   private final Collection<JHipsterModuleTag> tags;
 
   private JHipsterModuleTags(JHipsterModuleTagsBuilder builder) {
-    tags = Collections.unmodifiableCollection(builder.tags.stream().sorted(TAG_COMPARATOR).toList());
+    tags = builder.tags.stream().sorted(TAG_COMPARATOR).toList();
   }
 
   public static JHipsterModuleTagsBuilder builder() {
@@ -25,6 +28,11 @@ public class JHipsterModuleTags {
     Assert.notNull("other", other);
 
     return tags.contains(other);
+  }
+
+  @Override
+  public String toString() {
+    return tags.toString();
   }
 
   public static class JHipsterModuleTagsBuilder {

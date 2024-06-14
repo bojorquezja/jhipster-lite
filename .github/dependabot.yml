@@ -6,7 +6,6 @@ updates:
       interval: 'daily'
       time: '00:00'
     open-pull-requests-limit: 15
-    rebase-strategy: 'disabled'
     labels:
       - 'area: dependencies'
 
@@ -16,7 +15,15 @@ updates:
       interval: 'daily'
       time: '00:00'
     open-pull-requests-limit: 20
-    rebase-strategy: 'disabled'
+    labels:
+      - 'area: dependencies'
+
+  - package-ecosystem: 'gradle'
+    directory: '/src/main/resources/generator/dependencies/'
+    schedule:
+      interval: 'daily'
+      time: '00:00'
+    open-pull-requests-limit: 20
     labels:
       - 'area: dependencies'
 
@@ -26,7 +33,6 @@ updates:
       interval: 'daily'
       time: '00:00'
     open-pull-requests-limit: 10
-    rebase-strategy: 'disabled'
     labels:
       - 'area: dependencies'
   - package-ecosystem: 'github-actions'
@@ -35,7 +41,6 @@ updates:
       interval: 'daily'
       time: '00:00'
     open-pull-requests-limit: 10
-    rebase-strategy: 'disabled'
     labels:
       - 'area: dependencies'
   - package-ecosystem: 'github-actions'
@@ -44,51 +49,30 @@ updates:
       interval: 'daily'
       time: '00:00'
     open-pull-requests-limit: 10
-    rebase-strategy: 'disabled'
     labels:
       - 'area: dependencies'
 
-  - package-ecosystem: 'npm'
-    directory: '/'
-    schedule:
-      interval: 'daily'
-      time: '00:00'
-    open-pull-requests-limit: 10
-    rebase-strategy: 'disabled'
-    labels:
-      - 'area: dependencies'
   - package-ecosystem: 'npm'
     directory: '/src/main/resources/generator/dependencies/common'
     schedule:
       interval: 'daily'
       time: '00:00'
     open-pull-requests-limit: 20
-    rebase-strategy: 'disabled'
     labels:
       - 'area: dependencies'
     ignore:
-      - dependency-name: "node"
-        versions: ["15.x", "17.x", "19.x", "20.x"]
+      - dependency-name: 'node'
+        versions: ['15.x', '17.x', '19.x', '21.x', '22.x']
   - package-ecosystem: 'npm'
     directory: '/src/main/resources/generator/dependencies/vue'
     schedule:
       interval: 'daily'
       time: '00:00'
     open-pull-requests-limit: 20
-    rebase-strategy: 'disabled'
     labels:
       - 'area: dependencies'
   - package-ecosystem: 'npm'
     directory: '/src/main/resources/generator/dependencies/react'
-    schedule:
-      interval: 'daily'
-      time: '00:00'
-    open-pull-requests-limit: 20
-    rebase-strategy: 'disabled'
-    labels:
-      - 'area: dependencies'
-  - package-ecosystem: 'npm'
-    directory: '/src/main/resources/generator/dependencies/svelte'
     schedule:
       interval: 'daily'
       time: '00:00'
@@ -101,25 +85,21 @@ updates:
       interval: 'daily'
       time: '00:00'
     open-pull-requests-limit: 20
-    rebase-strategy: 'disabled'
     labels:
       - 'area: dependencies'
+    groups:
+      angular:
+        patterns:
+          - '@angular*'
+      typescript-eslint:
+        patterns:
+          - '@typescript-eslint*'
 
-  - package-ecosystem: 'docker'
-    directory: '/src/main/docker'
-    schedule:
-      interval: 'daily'
-      time: '00:00'
-    open-pull-requests-limit: 20
-    rebase-strategy: 'disabled'
-    labels:
-      - 'area: dependencies'
   - package-ecosystem: 'docker'
     directory: '/src/main/resources/generator/dependencies'
     schedule:
       interval: 'daily'
       time: '00:00'
     open-pull-requests-limit: 20
-    rebase-strategy: 'disabled'
     labels:
       - 'area: dependencies'

@@ -1,7 +1,8 @@
 package tech.jhipster.lite.generator.server.springboot.mvc.web.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteFeatureSlug.*;
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.SPRING_MVC_SERVER;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.SPRING_SERVER;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,8 +23,7 @@ class SpringBootMvcModulesConfiguration {
 
   @Bean
   JHipsterModuleResource springBootMvcModule(SpringBootMvcApplicationService springBootMvc) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SPRING_BOOT_MVC_EMPTY)
       .propertiesDefinition(properties())
       .apiDoc(SPRING_BOOT_MVC_API_GROUP, "Empty module: do not use alone. You should add another module in Spring MVC Server")
@@ -34,8 +34,7 @@ class SpringBootMvcModulesConfiguration {
 
   @Bean
   JHipsterModuleResource springBootTomcatMvcModule(SpringBootMvcApplicationService springBootMvc) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SPRING_BOOT_TOMCAT)
       .propertiesDefinition(properties())
       .apiDoc(SPRING_BOOT_MVC_API_GROUP, "Add Spring Boot MVC with Tomcat")
@@ -46,8 +45,7 @@ class SpringBootMvcModulesConfiguration {
 
   @Bean
   JHipsterModuleResource springBootUndertowMvcModule(SpringBootMvcApplicationService springBootMvc) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SPRING_BOOT_UNDERTOW)
       .propertiesDefinition(properties())
       .apiDoc(SPRING_BOOT_MVC_API_GROUP, "Add Spring Boot MVC with Undertow")
@@ -57,10 +55,19 @@ class SpringBootMvcModulesConfiguration {
   }
 
   private JHipsterModulePropertiesDefinition properties() {
-    return JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().addServerPort().build();
+    return JHipsterModulePropertiesDefinition.builder()
+      .addBasePackage()
+      .addIndentation()
+      .addServerPort()
+      .addSpringConfigurationFormat()
+      .build();
   }
 
   private JHipsterModuleOrganization mvcServerOrganization() {
-    return JHipsterModuleOrganization.builder().feature(SPRING_MVC_SERVER).addDependency(SPRING_BOOT_MVC_EMPTY).build();
+    return JHipsterModuleOrganization.builder()
+      .feature(SPRING_MVC_SERVER)
+      .addDependency(SPRING_BOOT_MVC_EMPTY)
+      .addDependency(LOGS_SPY)
+      .build();
   }
 }

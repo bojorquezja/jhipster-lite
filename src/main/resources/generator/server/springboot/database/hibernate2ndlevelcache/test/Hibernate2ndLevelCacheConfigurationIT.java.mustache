@@ -1,17 +1,17 @@
-package {{packageName}}.technical.infrastructure.secondary.cache;
+package {{packageName}}.wire.cache.infrastructure.secondary;
 
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import org.assertj.core.api.Assertions;
 import org.hibernate.cache.internal.EnabledCaching;
 import org.junit.jupiter.api.Test;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.PersistenceUnit;
 import {{packageName}}.IntegrationTest;
 
 @IntegrationTest
 class Hibernate2ndLevelCacheConfigurationIT {
 
   @PersistenceUnit
-  EntityManagerFactory factory;
+  private EntityManagerFactory factory;
 
   @Test
   void shouldEnableHibernateCaching() {

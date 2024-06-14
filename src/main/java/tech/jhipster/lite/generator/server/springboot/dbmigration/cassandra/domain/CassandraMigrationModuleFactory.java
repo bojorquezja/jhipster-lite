@@ -2,7 +2,6 @@ package tech.jhipster.lite.generator.server.springboot.dbmigration.cassandra.dom
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.docker.DockerImages;
 import tech.jhipster.lite.module.domain.file.JHipsterDestination;
@@ -10,11 +9,11 @@ import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class CassandraMigrationModuleFactory {
 
   private static final JHipsterSource SOURCE = from("server/springboot/dbmigration/cassandra");
-  private static final String DOCKER_COMPOSE_COMMAND = "docker compose -f src/main/docker/cassandra-migration.yml up -d";
   private static final String CASSANDRA = "cassandra";
   private final DockerImages dockerImages;
 
@@ -37,7 +36,9 @@ public class CassandraMigrationModuleFactory {
         .put("cassandraDockerImage", dockerImages.get(CASSANDRA).fullName())
         .and()
       .documentation(documentationTitle("Cassandra Migration"), SOURCE.file("cassandra-migration.md"))
-      .startupCommand(DOCKER_COMPOSE_COMMAND)
+      .startupCommands()
+        .dockerCompose("src/main/docker/cassandra-migration.yml")
+        .and()
       .files()
         .add(SOURCE.template("TestCassandraMigrationLoader.java"), toSrcTestJava().append(packagePath).append("TestCassandraMigrationLoader.java"))
         .add(SOURCE.template("Cassandra-Migration.Dockerfile"), toSrcMainDocker().append(CASSANDRA).append("Cassandra-Migration.Dockerfile"))

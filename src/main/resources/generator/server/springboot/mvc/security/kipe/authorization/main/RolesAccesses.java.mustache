@@ -1,14 +1,14 @@
-package {{packageName}}.kipe.domain;
+package {{packageName}}.shared.kipe.domain;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import {{packageName}}.authentication.domain.Role;
-import {{packageName}}.authentication.domain.Roles;
-import {{packageName}}.error.domain.Assert;
-import {{packageName}}.kipe.domain.Accesses.RoleAccessesBuilder;
+import {{packageName}}.shared.authentication.domain.Role;
+import {{packageName}}.shared.authentication.domain.Roles;
+import {{packageName}}.shared.error.domain.Assert;
+import {{packageName}}.shared.kipe.domain.Accesses.RoleAccessesBuilder;
 
 public final class RolesAccesses {
 
@@ -78,7 +78,7 @@ public final class RolesAccesses {
     return new RolesAccesses(mergedRoles);
   }
 
-  public static class RolesAccessesBuilder {
+  public static final class RolesAccessesBuilder {
 
     private final Map<Role, RoleAccessesBuilder> roles = new ConcurrentHashMap<>();
 

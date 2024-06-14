@@ -2,15 +2,13 @@ package tech.jhipster.lite;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
-import tech.jhipster.lite.common.domain.ExcludeFromGeneratedCodeCoverage;
-import tech.jhipster.lite.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 final class ApplicationStartupTraces {
 
@@ -43,7 +41,7 @@ final class ApplicationStartupTraces {
       return "Application is running!";
     }
 
-    return new StringBuilder().append("Application '").append(applicationName).append("' is running!").toString();
+    return "Application '%s' is running!".formatted(applicationName);
   }
 
   private static String localUrl(Environment environment) {
@@ -98,7 +96,7 @@ final class ApplicationStartupTraces {
       return null;
     }
 
-    return new StringBuilder().append("Profile(s): \t").append(Stream.of(profiles).collect(Collectors.joining(", "))).toString();
+    return "Profile(s): \t%s".formatted(String.join(", ", profiles));
   }
 
   @ExcludeFromGeneratedCodeCoverage(reason = "Hard to test implement detail error management")
@@ -129,10 +127,10 @@ final class ApplicationStartupTraces {
       return null;
     }
 
-    return new StringBuilder().append("Config Server: ").append(configServer).append(BREAK).append(SEPARATOR).append(BREAK).toString();
+    return "Config Server: " + configServer + BREAK + SEPARATOR + BREAK;
   }
 
-  private static class ApplicationStartupTracesBuilder {
+  private static final class ApplicationStartupTracesBuilder {
 
     private static final String SPACER = "  ";
 

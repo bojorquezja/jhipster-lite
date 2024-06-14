@@ -1,28 +1,27 @@
-package {{ packageName }}.error.infrastructure.primary;
+package {{ packageName }}.shared.error.infrastructure.primary;
 
 import static org.mockito.Mockito.*;
 
 import ch.qos.logback.classic.Level;
+import {{ packageName }}.Logs;
 import {{ packageName }}.LogsSpy;
+import {{ packageName }}.LogsSpyExtension;
 import {{ packageName }}.UnitTest;
-import {{ packageName }}.error.domain.AssertionErrorType;
-import {{ packageName }}.error.domain.AssertionException;
-import {{ packageName }}.error_generator.domain.NullElementInCollectionExceptionFactory;
+import {{ packageName }}.shared.error.domain.AssertionErrorType;
+import {{ packageName }}.shared.error.domain.AssertionException;
+import {{ packageName }}.shared.error_generator.domain.NullElementInCollectionExceptionFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.context.MessageSource;
 
 @UnitTest
-@ExtendWith(LogsSpy.class)
+@ExtendWith(LogsSpyExtension.class)
 class AssertionErrorsHandlerTest {
 
   private static final AssertionErrorsHandler handler = new AssertionErrorsHandler(mock(MessageSource.class));
 
-  private final LogsSpy logs;
-
-  public AssertionErrorsHandlerTest(LogsSpy logs) {
-    this.logs = logs;
-  }
+  @Logs
+  private LogsSpy logs;
 
   @Test
   void shouldLogPrimaryAssertionExceptionInInfo() {

@@ -2,10 +2,10 @@ package tech.jhipster.lite.generator.server.springboot.technicaltools.actuator.d
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.javabuild.GroupId;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class SpringBootActuatorModuleFactory {
 
@@ -25,8 +25,7 @@ public class SpringBootActuatorModuleFactory {
           propertyKey("management.endpoints.web.exposure.include"),
           propertyValue("configprops", "env", "health", "info", "logfile", "loggers", "threaddump")
         )
-        .set(propertyKey("management.endpoint.health.probes.enabled"), propertyValue("true"))
-        .set(propertyKey("spring.security.oauth2.client.registration.oidc.scope"), propertyValue("openid", "profile", "email"))
+        .set(propertyKey("management.endpoint.health.probes.enabled"), propertyValue(true))
         .set(propertyKey("management.endpoint.health.show-details"), propertyValue("always"))
         .and()
       .build();

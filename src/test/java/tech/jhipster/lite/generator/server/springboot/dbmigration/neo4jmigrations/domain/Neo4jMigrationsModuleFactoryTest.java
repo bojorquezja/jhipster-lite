@@ -17,8 +17,7 @@ class Neo4jMigrationsModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .build();
 
@@ -37,10 +36,14 @@ class Neo4jMigrationsModuleFactoryTest {
         """
       )
       .and()
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("org.neo4j.migrations.check-location=false")
-      .and()
-      .hasFile("src/test/resources/config/application.properties")
-      .containing("org.neo4j.migrations.check-location=false");
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        org:
+          neo4j:
+            migrations:
+              check-location: false
+        """
+      );
   }
 }

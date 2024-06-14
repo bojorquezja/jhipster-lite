@@ -5,8 +5,6 @@ import static org.mockito.Mockito.*;
 import static tech.jhipster.lite.project.domain.history.ProjectHistoryFixture.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.exc.StreamReadException;
-import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.ByteArrayInputStream;
@@ -26,11 +24,11 @@ import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.JsonHelper;
 import tech.jhipster.lite.TestFileUtils;
 import tech.jhipster.lite.UnitTest;
-import tech.jhipster.lite.error.domain.GeneratorException;
 import tech.jhipster.lite.project.domain.ProjectPath;
 import tech.jhipster.lite.project.domain.download.Project;
 import tech.jhipster.lite.project.domain.download.ProjectName;
 import tech.jhipster.lite.project.domain.history.ProjectHistory;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
 
 @UnitTest
 class FileSystemProjectsRepositoryTest {
@@ -141,9 +139,9 @@ class FileSystemProjectsRepositoryTest {
       ObjectMapper json = mock(ObjectMapper.class);
       when(json.writerWithDefaultPrettyPrinter()).thenReturn(writer);
 
-      FileSystemProjectsRepository projects = new FileSystemProjectsRepository(json, mock(ProjectFormatter.class));
+      FileSystemProjectsRepository fileSystemProjectsRepository = new FileSystemProjectsRepository(json, mock(ProjectFormatter.class));
 
-      assertThatThrownBy(() -> projects.save(projectHistory())).isExactlyInstanceOf(GeneratorException.class);
+      assertThatThrownBy(() -> fileSystemProjectsRepository.save(projectHistory())).isExactlyInstanceOf(GeneratorException.class);
     }
 
     @Test
@@ -152,22 +150,21 @@ class FileSystemProjectsRepositoryTest {
 
       projects.save(new ProjectHistory(path, List.of(projectAction())));
 
-      assertThat(Files.readString(Paths.get(path.get(), ".jhipster/modules", "history.json")))
-        .isEqualToIgnoringWhitespace(
-          """
-              {
-                "actions" : [
-                  {
-                    "module" : "test-module",
-                    "date" : "2021-12-03T10:15:30Z",
-                    "properties" : {
-                      "key" : "value"
-                    }
-                  }
-                ]
+      assertThat(Files.readString(Paths.get(path.get(), ".jhipster/modules", "history.json"))).isEqualToIgnoringWhitespace(
+        """
+        {
+          "actions" : [
+            {
+              "module" : "test-module",
+              "date" : "2021-12-03T10:15:30Z",
+              "properties" : {
+                "key" : "value"
               }
-              """
-        );
+            }
+          ]
+        }
+        """
+      );
     }
   }
 
@@ -176,14 +173,14 @@ class FileSystemProjectsRepositoryTest {
   class FileSystemProjectsRepositoryGetHistoryTest {
 
     @Test
-    void shouldHandleDeserializationErrors() throws StreamReadException, DatabindException, IOException {
+    void shouldHandleDeserializationErrors() throws IOException {
       ProjectPath path = folder().add("src/test/resources/projects/history/history.json", ".jhipster/modules/history.json").build();
       ObjectMapper json = mock(ObjectMapper.class);
       when(json.readValue(any(byte[].class), eq(PersistedProjectHistory.class))).thenThrow(IOException.class);
 
-      FileSystemProjectsRepository projects = new FileSystemProjectsRepository(json, mock(ProjectFormatter.class));
+      FileSystemProjectsRepository fileSystemProjectsRepository = new FileSystemProjectsRepository(json, mock(ProjectFormatter.class));
 
-      assertThatThrownBy(() -> projects.getHistory(path)).isExactlyInstanceOf(GeneratorException.class);
+      assertThatThrownBy(() -> fileSystemProjectsRepository.getHistory(path)).isExactlyInstanceOf(GeneratorException.class);
     }
 
     @Test

@@ -1,7 +1,7 @@
 package tech.jhipster.lite.generator.client.vue.core.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteFeatureSlug.*;
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +15,7 @@ class VueModuleConfiguration {
 
   @Bean
   JHipsterModuleResource vueCoreModule(VueApplicationService vue) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(VUE_CORE)
       .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addIndentation().build())
       .apiDoc("Vue", "Add Vue+Vite")
@@ -27,8 +26,7 @@ class VueModuleConfiguration {
 
   @Bean
   JHipsterModuleResource vuePiniaModule(VueApplicationService vue) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(VUE_PINIA)
       .withoutProperties()
       .apiDoc("Vue", "Add pinia for state management")

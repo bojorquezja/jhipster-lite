@@ -3,29 +3,27 @@ package tech.jhipster.lite.module.infrastructure.secondary;
 import static tech.jhipster.lite.module.domain.JHipsterModule.LINE_BREAK;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import tech.jhipster.lite.common.domain.Enums;
-import tech.jhipster.lite.common.domain.ExcludeFromGeneratedCodeCoverage;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.error.domain.GeneratorException;
+import org.springframework.stereotype.Service;
 import tech.jhipster.lite.module.domain.Indentation;
+import tech.jhipster.lite.module.domain.JHipsterModuleContext;
+import tech.jhipster.lite.module.domain.file.TemplateRenderer;
 import tech.jhipster.lite.module.domain.npm.NpmVersionSource;
 import tech.jhipster.lite.module.domain.npm.NpmVersions;
-import tech.jhipster.lite.module.domain.packagejson.JHipsterModulePackageJson;
-import tech.jhipster.lite.module.domain.packagejson.PackageJsonDependencies;
-import tech.jhipster.lite.module.domain.packagejson.PackageJsonDependency;
-import tech.jhipster.lite.module.domain.packagejson.Scripts;
+import tech.jhipster.lite.module.domain.packagejson.*;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
+import tech.jhipster.lite.shared.enumeration.domain.Enums;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
+@Service
 class FileSystemPackageJsonHandler {
 
   private static final String QUOTE = "\"";
@@ -33,17 +31,26 @@ class FileSystemPackageJsonHandler {
   private static final String LINE_SEPARATOR = LINE_END + LINE_BREAK;
 
   private final NpmVersions npmVersions;
+  private final TemplateRenderer templateRenderer;
 
-  public FileSystemPackageJsonHandler(NpmVersions npmVersions) {
+  public FileSystemPackageJsonHandler(NpmVersions npmVersions, TemplateRenderer templateRenderer) {
     Assert.notNull("npmVersions", npmVersions);
+    Assert.notNull("templateRenderer", templateRenderer);
 
     this.npmVersions = npmVersions;
+    this.templateRenderer = templateRenderer;
   }
 
-  public void handle(Indentation indentation, JHipsterProjectFolder projectFolder, JHipsterModulePackageJson packageJson) {
+  public void handle(
+    Indentation indentation,
+    JHipsterProjectFolder projectFolder,
+    JHipsterModulePackageJson packageJson,
+    JHipsterModuleContext context
+  ) {
     Assert.notNull("indentation", indentation);
     Assert.notNull("projectFolder", projectFolder);
     Assert.notNull("packageJson", packageJson);
+    Assert.notNull("context", context);
 
     if (packageJson.isEmpty()) {
       return;
@@ -52,13 +59,16 @@ class FileSystemPackageJsonHandler {
     Path file = getPackageJsonFile(projectFolder);
 
     String content = readContent(file);
+    content = replaceType(indentation, packageJson.type(), content);
     content = replaceScripts(indentation, packageJson.scripts(), content);
     content = replaceDevDependencies(indentation, packageJson.devDependencies(), content);
     content = replaceDependencies(indentation, packageJson.dependencies(), content);
     content = removeDependencies(indentation, packageJson.dependenciesToRemove(), content);
     content = removeDevDependencies(indentation, packageJson.devDependenciesToRemove(), content);
 
+    content = replacePlaceholders(content, context);
     content = cleanupLineBreaks(indentation, content);
+
     write(file, content);
   }
 
@@ -70,6 +80,10 @@ class FileSystemPackageJsonHandler {
     }
 
     return file;
+  }
+
+  private String replacePlaceholders(String content, JHipsterModuleContext context) {
+    return templateRenderer.render(content, context);
   }
 
   private String cleanupLineBreaks(Indentation indentation, String content) {
@@ -85,8 +99,7 @@ class FileSystemPackageJsonHandler {
   }
 
   private String replaceDevDependencies(Indentation indentation, PackageJsonDependencies devDependencies, String content) {
-    return JsonAction
-      .replace()
+    return JsonAction.replace()
       .blocName("devDependencies")
       .jsonContent(content)
       .indentation(indentation)
@@ -95,8 +108,7 @@ class FileSystemPackageJsonHandler {
   }
 
   private String removeDevDependencies(Indentation indentation, PackageJsonDependencies dependenciesToRemove, String content) {
-    return JsonAction
-      .remove()
+    return JsonAction.remove()
       .blocName("devDependencies")
       .jsonContent(content)
       .indentation(indentation)
@@ -105,8 +117,7 @@ class FileSystemPackageJsonHandler {
   }
 
   private String replaceDependencies(Indentation indentation, PackageJsonDependencies dependencies, String content) {
-    return JsonAction
-      .replace()
+    return JsonAction.replace()
       .blocName("dependencies")
       .jsonContent(content)
       .indentation(indentation)
@@ -115,8 +126,7 @@ class FileSystemPackageJsonHandler {
   }
 
   private String removeDependencies(Indentation indentation, PackageJsonDependencies dependenciesToRemove, String content) {
-    return JsonAction
-      .remove()
+    return JsonAction.remove()
       .blocName("dependencies")
       .jsonContent(content)
       .indentation(indentation)
@@ -124,12 +134,17 @@ class FileSystemPackageJsonHandler {
       .apply();
   }
 
+  private String replaceType(Indentation indentation, PackageJsonType packageJsonType, String content) {
+    return JsonAction.replace().blocName("type").jsonContent(content).indentation(indentation).blocValue(packageJsonType.type()).apply();
+  }
+
   private List<JsonEntry> dependenciesEntries(PackageJsonDependencies devDependencies) {
     return devDependencies.stream().map(dependency -> new JsonEntry(dependency.packageName().get(), getNpmVersion(dependency))).toList();
   }
 
   private String getNpmVersion(PackageJsonDependency dependency) {
-    return npmVersions.get(dependency.packageName().get(), Enums.map(dependency.versionSource(), NpmVersionSource.class)).get();
+    PackageName packageName = dependency.versionPackageName().orElse(dependency.packageName());
+    return npmVersions.get(packageName.get(), Enums.map(dependency.versionSource(), NpmVersionSource.class)).get();
   }
 
   @ExcludeFromGeneratedCodeCoverage(reason = "The error handling is an hard to test implementation detail")
@@ -137,26 +152,27 @@ class FileSystemPackageJsonHandler {
     try {
       return Files.readString(file);
     } catch (IOException e) {
-      throw GeneratorException.technicalError("Error reading " + file.toAbsolutePath().toString() + " content" + e.getMessage(), e);
+      throw GeneratorException.technicalError("Error reading " + file.toAbsolutePath() + " content" + e.getMessage(), e);
     }
   }
 
   @ExcludeFromGeneratedCodeCoverage(reason = "The error handling is an hard to test implementation detail")
   private void write(Path file, String content) {
     try {
-      Files.write(file, content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.TRUNCATE_EXISTING);
+      Files.writeString(file, content, StandardOpenOption.TRUNCATE_EXISTING);
     } catch (IOException e) {
-      throw GeneratorException.technicalError("Error writing " + file.toAbsolutePath().toString() + ": " + e.getMessage(), e);
+      throw GeneratorException.technicalError("Error writing " + file.toAbsolutePath() + ": " + e.getMessage(), e);
     }
   }
 
-  private static class JsonAction {
+  private static final class JsonAction {
 
     private final String blocName;
     private final String jsonContent;
     private final Indentation indentation;
     private final Collection<JsonEntry> entries;
     private final JsonActionType action;
+    private final String blocValue;
 
     private JsonAction(JsonActionBuilder builder) {
       blocName = builder.blocName;
@@ -164,6 +180,7 @@ class FileSystemPackageJsonHandler {
       indentation = builder.indentation;
       entries = builder.entries;
       action = builder.action;
+      blocValue = builder.blocValue;
     }
 
     public static JsonActionBuilder replace() {
@@ -174,11 +191,14 @@ class FileSystemPackageJsonHandler {
       return new JsonActionBuilder(JsonActionType.REMOVE);
     }
 
-    @ExcludeFromGeneratedCodeCoverage(reason = "Jacoco thinks there is a missed branch")
     public String handle() {
       Assert.notNull("action", action);
 
-      if (entries.isEmpty()) {
+      if (blocValue != null) {
+        return appendNewRootEntry(jsonContent);
+      }
+
+      if (entries == null || entries.isEmpty()) {
         return jsonContent;
       }
 
@@ -217,6 +237,22 @@ class FileSystemPackageJsonHandler {
       });
     }
 
+    private String appendNewRootEntry(String result) {
+      String jsonBloc = new StringBuilder()
+        .append(LINE_SEPARATOR)
+        .append(indentation.spaces())
+        .append(QUOTE)
+        .append(blocName)
+        .append(QUOTE)
+        .append(": ")
+        .append(QUOTE)
+        .append(blocValue)
+        .append(QUOTE)
+        .toString();
+
+      return result.replaceFirst("(\\s{1,10})}(\\s{1,10})$", jsonBloc + "$1}$2");
+    }
+
     private String appendNewBlock(String result) {
       String jsonBloc = new StringBuilder()
         .append(LINE_SEPARATOR)
@@ -232,7 +268,7 @@ class FileSystemPackageJsonHandler {
         .append("}")
         .toString();
 
-      return result.replaceFirst("(\\s{1,10})\\}(\\s{1,10})$", jsonBloc + "$1}$2");
+      return result.replaceFirst("(\\s{1,10})}(\\s{1,10})$", jsonBloc + "$1}$2");
     }
 
     private Matcher buildBlocMatcher(String result) {
@@ -267,13 +303,14 @@ class FileSystemPackageJsonHandler {
       return entries.stream().map(entry -> entry.toJson(indentation)).collect(Collectors.joining(LINE_SEPARATOR));
     }
 
-    private static class JsonActionBuilder {
+    private static final class JsonActionBuilder {
 
       private String blocName;
       private String jsonContent;
       private Indentation indentation;
       private Collection<JsonEntry> entries;
-      private JsonActionType action;
+      private final JsonActionType action;
+      private String blocValue;
 
       private JsonActionBuilder(JsonActionType action) {
         this.action = action;
@@ -305,6 +342,12 @@ class FileSystemPackageJsonHandler {
 
       private String apply() {
         return new JsonAction(this).handle();
+      }
+
+      public JsonActionBuilder blocValue(String blocValue) {
+        this.blocValue = blocValue;
+
+        return this;
       }
     }
   }

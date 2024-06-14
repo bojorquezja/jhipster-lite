@@ -1,6 +1,5 @@
 package tech.jhipster.lite.generator.server.springboot.dbmigration.flyway.application;
 
-import java.time.Instant;
 import org.springframework.stereotype.Service;
 import tech.jhipster.lite.generator.server.springboot.dbmigration.flyway.domain.FlywayModuleFactory;
 import tech.jhipster.lite.module.domain.JHipsterModule;
@@ -16,10 +15,18 @@ public class FlywayApplicationService {
   }
 
   public JHipsterModule buildInitializationModule(JHipsterModuleProperties properties) {
-    return factory.buildInitializationModule(properties, Instant.now());
+    return factory.buildInitializationModule(properties);
   }
 
   public JHipsterModule buildMysqlDependencyModule(JHipsterModuleProperties properties) {
     return factory.buildMysqlDependencyModule(properties);
+  }
+
+  public JHipsterModule buildPostgresqlDependencyModule(JHipsterModuleProperties properties) {
+    return factory.buildPostgresqlDependencyModule(properties);
+  }
+
+  public JHipsterModule buildMsSqlServerDependencyModule(JHipsterModuleProperties properties) {
+    return factory.buildMsSqlServerDependencyModule(properties);
   }
 }

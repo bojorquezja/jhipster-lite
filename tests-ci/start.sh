@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 PORT=$1
 if [[ $PORT == '' ]]; then
-  echo "*** Using default port 8080"
-  PORT='8080'
+  echo "*** Using default port 8081"
+  PORT='8081'
 fi
 
 echo "*** Waiting 5sec to be sure the Jar is here"
@@ -18,12 +18,15 @@ elif test -f "gradlew"; then
   cd build/libs/
 fi
 
-echo "*** Removing other jar files..."
-rm *-javadoc.jar *-sources.jar *-tests.jar
+echo "*** Identifying application executable..."
+export EXEC_JAR=$(\
+  find . -maxdepth 1 -name "*-exec.jar" | grep . \
+  || find . -maxdepth 1 -name "*.jar" | grep -v "\-javadoc" | grep -v "\-sources" | grep -v "\-tests" | grep -v "\-plain" \
+)
 
-echo "*** Starting application..."
+echo "*** Starting application using ${EXEC_JAR}..."
 java \
-  -jar *.jar \
+  -jar ${EXEC_JAR} \
   --logging.level.ROOT=OFF & > /dev/null
 echo $! > .pid-jhlite
 
@@ -43,5 +46,5 @@ done
 
 if [ "$status" -ne 0 ]; then
   echo "*** [$(date)] Not connected after" $retryCount " retries."
-  return 1
+  exit 1
 fi

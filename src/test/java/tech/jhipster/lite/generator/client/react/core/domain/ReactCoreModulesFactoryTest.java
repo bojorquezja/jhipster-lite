@@ -21,12 +21,11 @@ class ReactCoreModulesFactoryTest {
 
     assertThatModuleWithFiles(module, packageJsonFile(), lintStagedConfigFile())
       .hasFile("package.json")
+      .containing(nodeDependency("@testing-library/dom"))
       .containing(nodeDependency("@testing-library/react"))
-      .containing(nodeDependency("@testing-library/user-event"))
       .containing(nodeDependency("@types/node"))
       .containing(nodeDependency("@types/react"))
       .containing(nodeDependency("@types/react-dom"))
-      .containing(nodeDependency("@types/ws"))
       .containing(nodeDependency("@typescript-eslint/eslint-plugin"))
       .containing(nodeDependency("@vitejs/plugin-react"))
       .containing(nodeDependency("@vitest/coverage-istanbul"))
@@ -46,20 +45,21 @@ class ReactCoreModulesFactoryTest {
       .containing(nodeScript("preview", "vite preview"))
       .containing(nodeScript("start", "vite"))
       .containing(nodeScript("lint", "eslint --ext .js,.ts,.tsx src/main/webapp/app/**/*"))
-      .containing(nodeScript("test", "vitest run --coverage"))
+      .containing(nodeScript("test", "npm run test:watch"))
+      .containing(nodeScript("test:coverage", "vitest run --coverage"))
       .containing(nodeScript("test:watch", "vitest --"))
       .and()
-      .hasFile(".lintstagedrc.js")
+      .hasFile(".lintstagedrc.cjs")
       .containing(
         """
-            module.exports = {
-              '{src/**/,}*.{js,ts,tsx,vue}': ['eslint --fix'],
-              '{src/**/,}*.{md,json,yml,html,css,scss,java,xml}': ['prettier --write'],
-            };
-            """
+        module.exports = {
+          '{src/**/,}*.{js,ts,tsx,vue}': ['eslint --fix'],
+          '*.{md,json,yml,html,css,scss,java,xml,feature}': ['prettier --write'],
+        };
+        """
       )
       .and()
-      .hasFiles("tsconfig.json", "vite.config.ts", "vitest.config.ts", ".eslintignore", ".eslintrc.js")
+      .hasFiles("tsconfig.json", "vite.config.ts", "vitest.config.ts", ".npmrc", ".eslintignore", ".eslintrc.cjs")
       .hasFiles("src/main/webapp/index.html")
       .hasPrefixedFiles("src/main/webapp/app", "index.css", "index.tsx", "vite-env.d.ts")
       .hasFiles("src/test/javascript/spec/common/primary/app/App.spec.tsx")
@@ -68,6 +68,27 @@ class ReactCoreModulesFactoryTest {
       .and()
       .hasFiles("src/main/webapp/app/common/primary/app/App.css")
       .hasPrefixedFiles("src/main/webapp/assets", "ReactLogo.png", "JHipster-Lite-neon-blue.png");
+  }
+
+  @Test
+  void shouldViteConfigBeUpdatedWhenServerPortPropertyNotDefault() {
+    JHipsterModule module = factory.buildModule(
+      JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest()).projectBaseName("jhipster").put("serverPort", 8081).build()
+    );
+
+    assertThatModuleWithFiles(module, packageJsonFile())
+      .hasFile("vite.config.ts")
+      .containing("localhost:8081")
+      .notContaining("localhost:8080");
+  }
+
+  @Test
+  void shouldViteConfigBeDefaultWhenServerPortPropertyMissing() {
+    JHipsterModule module = factory.buildModule(
+      JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest()).projectBaseName("jhipster").build()
+    );
+
+    assertThatModuleWithFiles(module, packageJsonFile()).hasFile("vite.config.ts").containing("localhost:8080");
   }
 
   private String nodeScript(String key, String value) {

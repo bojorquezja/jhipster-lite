@@ -1,7 +1,8 @@
 package tech.jhipster.lite.generator.server.springboot.database.mssql.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteFeatureSlug.*;
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteFeatureSlug.JPA_PERSISTENCE;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.MSSQL;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.SPRING_BOOT;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,10 +16,16 @@ class MsSQLModuleConfiguration {
 
   @Bean
   JHipsterModuleResource msSQLModule(MsSQLApplicationService applicationService) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(MSSQL)
-      .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().addProjectBaseName().build())
+      .propertiesDefinition(
+        JHipsterModulePropertiesDefinition.builder()
+          .addBasePackage()
+          .addIndentation()
+          .addProjectBaseName()
+          .addSpringConfigurationFormat()
+          .build()
+      )
       .apiDoc("Spring Boot - Database", "Add MsSQL to project")
       .organization(JHipsterModuleOrganization.builder().feature(JPA_PERSISTENCE).addDependency(SPRING_BOOT).build())
       .tags("server", "database", "mssql")

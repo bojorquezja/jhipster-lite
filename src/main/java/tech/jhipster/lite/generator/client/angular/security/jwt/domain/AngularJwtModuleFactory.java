@@ -3,8 +3,6 @@ package tech.jhipster.lite.generator.client.angular.security.jwt.domain;
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
 import java.util.regex.Pattern;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.module.domain.Indentation;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.file.JHipsterDestination;
 import tech.jhipster.lite.module.domain.file.JHipsterSource;
@@ -12,6 +10,7 @@ import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
 import tech.jhipster.lite.module.domain.replacement.ElementReplacer;
 import tech.jhipster.lite.module.domain.replacement.RegexReplacer;
 import tech.jhipster.lite.module.domain.replacement.TextNeedleBeforeReplacer;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class AngularJwtModuleFactory {
 
@@ -32,9 +31,10 @@ public class AngularJwtModuleFactory {
       },\
     """;
 
-  private static final String AUTH_INTERCEPTOR_IMPORT = """
-      import { AuthInterceptor } from './app/auth/auth.interceptor';
-      """;
+  private static final String AUTH_INTERCEPTOR_IMPORT =
+    """
+    import { AuthInterceptor } from './app/auth/auth.interceptor';
+    """;
 
   private static final JHipsterSource SOURCE = from("client/angular/security/jwt/src/main/webapp/app");
 

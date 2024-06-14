@@ -1,8 +1,8 @@
 package tech.jhipster.lite.project.infrastructure.primary;
 
-import static org.assertj.core.api.Assertions.*;
-import static tech.jhipster.lite.TestProjects.*;
-import static tech.jhipster.lite.cucumber.CucumberAssertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static tech.jhipster.lite.TestProjects.lastProjectFolder;
+import static tech.jhipster.lite.cucumber.rest.CucumberRestAssertions.assertThatLastResponse;
 
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
@@ -100,14 +100,14 @@ public class ProjectsSteps {
   }
 
   @Then("I should have commit {string}")
-  public void shouldHaveCommit(String commitMessage) throws IOException {
+  public void shouldHaveCommit(String commitMessage) {
     assertThatLastResponse().hasOkStatus();
 
     assertThat(GitTestUtil.getCommits(lastProjectPath())).contains(commitMessage);
   }
 
   @Then("I should not have any commit")
-  public void shouldNotHaveCommits() throws IOException {
+  public void shouldNotHaveCommits() {
     assertThatLastResponse().hasOkStatus();
 
     assertThat(GitTestUtil.getCommits(lastProjectPath())).isEmpty();

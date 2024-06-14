@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.server.springboot.database.redis.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.REDIS;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.REDIS;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,10 +14,11 @@ class RedisModuleConfiguration {
 
   @Bean
   JHipsterModuleResource redisModule(RedisApplicationService redis) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(REDIS)
-      .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().build())
+      .propertiesDefinition(
+        JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().addSpringConfigurationFormat().build()
+      )
       .apiDoc("Spring Boot - Database", "Add Redis drivers and dependencies, with testcontainers")
       .organization(JHipsterModuleOrganization.SPRINGBOOT_DEPENDENCY)
       .tags("server", "spring", "spring-boot", "database")

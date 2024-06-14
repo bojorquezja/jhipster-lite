@@ -1,100 +1,47 @@
 package tech.jhipster.lite.module.infrastructure.secondary.javadependency.maven;
 
-import static org.joox.JOOX.*;
-import static tech.jhipster.lite.module.domain.JHipsterModule.*;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.io.Writer;
+import io.fabric8.maven.Maven;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.io.OutputFormat;
-import org.dom4j.io.XMLWriter;
-import org.joox.JOOX;
-import org.joox.Match;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-import tech.jhipster.lite.common.domain.Enums;
-import tech.jhipster.lite.common.domain.ExcludeFromGeneratedCodeCoverage;
-import tech.jhipster.lite.error.domain.Assert;
-import tech.jhipster.lite.error.domain.GeneratorException;
+import org.apache.maven.model.*;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import tech.jhipster.lite.module.domain.Indentation;
+import tech.jhipster.lite.module.domain.buildproperties.BuildProperty;
+import tech.jhipster.lite.module.domain.buildproperties.PropertyKey;
+import tech.jhipster.lite.module.domain.buildproperties.PropertyValue;
+import tech.jhipster.lite.module.domain.javabuild.MavenBuildExtension;
 import tech.jhipster.lite.module.domain.javabuild.VersionSlug;
-import tech.jhipster.lite.module.domain.javabuild.command.AddBuildPluginManagement;
-import tech.jhipster.lite.module.domain.javabuild.command.AddDirectJavaBuildPlugin;
-import tech.jhipster.lite.module.domain.javabuild.command.AddDirectJavaDependency;
-import tech.jhipster.lite.module.domain.javabuild.command.AddJavaBuildPlugin;
-import tech.jhipster.lite.module.domain.javabuild.command.AddJavaDependency;
-import tech.jhipster.lite.module.domain.javabuild.command.AddJavaDependencyManagement;
-import tech.jhipster.lite.module.domain.javabuild.command.RemoveDirectJavaDependency;
-import tech.jhipster.lite.module.domain.javabuild.command.RemoveJavaDependencyManagement;
-import tech.jhipster.lite.module.domain.javabuild.command.SetVersion;
-import tech.jhipster.lite.module.domain.javabuildplugin.JavaBuildPluginAdditionalElements;
+import tech.jhipster.lite.module.domain.javabuild.command.*;
+import tech.jhipster.lite.module.domain.javabuildprofile.BuildProfileActivation;
+import tech.jhipster.lite.module.domain.javabuildprofile.BuildProfileId;
 import tech.jhipster.lite.module.domain.javadependency.DependencyId;
+import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependencyClassifier;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
+import tech.jhipster.lite.module.domain.mavenplugin.*;
 import tech.jhipster.lite.module.infrastructure.secondary.javadependency.JavaDependenciesCommandHandler;
+import tech.jhipster.lite.shared.enumeration.domain.Enums;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 public class MavenCommandHandler implements JavaDependenciesCommandHandler {
 
-  private static final String FORMATTED_LINE_END = "> *" + LINE_BREAK;
-  private static final String RESULTING_LINE_END = ">" + LINE_BREAK;
-  private static final Pattern SPACES_ONLY_LINE = Pattern.compile("^\\s+$", Pattern.MULTILINE);
-  private static final String HEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + LINE_BREAK;
   private static final String COMMAND = "command";
-  private static final String GROUP_ID = "groupId";
-  private static final String ARTIFACT_ID = "artifactId";
-  private static final String VERSION = "version";
-  private static final String CLASSIFIER = "classifier";
-
-  private static final String PARENT = "parent";
-  private static final String PACKAGING = "packaging";
-  private static final String DESCRIPTION = "description";
-  private static final String NAME = "name";
-  private static final String PROPERTIES = "properties";
-  private static final String DEPENDENCY_MANAGEMENT = "dependencyManagement";
-  private static final String DEPENDENCIES = "dependencies";
-  private static final String PLUGINS = "plugins";
-
-  private static final String[] PROPERTIES_ANCHORS = new String[] { PARENT, PACKAGING, DESCRIPTION, NAME, VERSION, ARTIFACT_ID };
-
-  private static final String[] DEPENDENCIES_ANCHORS = new String[] {
-    DEPENDENCY_MANAGEMENT,
-    PROPERTIES,
-    PARENT,
-    PACKAGING,
-    DESCRIPTION,
-    NAME,
-    VERSION,
-    ARTIFACT_ID,
-  };
-
-  private static final String[] BUILD_ANCHORS = new String[] {
-    DEPENDENCIES,
-    DEPENDENCY_MANAGEMENT,
-    PROPERTIES,
-    PARENT,
-    PACKAGING,
-    DESCRIPTION,
-    NAME,
-    VERSION,
-    ARTIFACT_ID,
-  };
+  private static final int DEFAULT_MAVEN_INDENTATION = 2;
 
   private final Indentation indentation;
   private final Path pomPath;
-  private final Match document;
+  private final Model pomModel;
 
   public MavenCommandHandler(Indentation indentation, Path pomPath) {
     Assert.notNull("indentation", indentation);
@@ -102,14 +49,14 @@ public class MavenCommandHandler implements JavaDependenciesCommandHandler {
 
     this.indentation = indentation;
     this.pomPath = pomPath;
-    document = readDocument(pomPath);
+    pomModel = readModel(pomPath);
   }
 
-  private Match readDocument(Path pomPath) {
-    try (InputStream input = Files.newInputStream(pomPath)) {
-      return $(input);
-    } catch (IOException | SAXException e) {
-      throw GeneratorException.technicalError("Error reading pom content: " + e.getMessage(), e);
+  private Model readModel(Path pomPath) {
+    try {
+      return Maven.readModel(pomPath);
+    } catch (UncheckedIOException e) {
+      throw GeneratorException.technicalError("Error reading pom: " + e.getMessage(), e);
     }
   }
 
@@ -117,454 +64,386 @@ public class MavenCommandHandler implements JavaDependenciesCommandHandler {
   public void handle(SetVersion command) {
     Assert.notNull(COMMAND, command);
 
-    Match properties = document.find("project > properties");
-    if (properties.isEmpty()) {
-      appendProperties(command);
-    } else {
-      appendPropertyLine(properties, command);
+    BuildProperty property = new BuildProperty(new PropertyKey(command.property()), new PropertyValue(command.dependencyVersion()));
+    handle(new SetBuildProperty(property));
+  }
+
+  @Override
+  public void handle(SetBuildProperty command) {
+    Assert.notNull(COMMAND, command);
+
+    ModelBase model = command.buildProfile().map(this::findProfile).map(ModelBase.class::cast).orElse(pomModel);
+    model.addProperty(command.property().key().get(), command.property().value().get());
+
+    writePom();
+  }
+
+  private Profile findProfile(BuildProfileId buildProfileId) {
+    return pomModel
+      .getProfiles()
+      .stream()
+      .filter(profileMatch(buildProfileId))
+      .findFirst()
+      .orElseThrow(() -> new MissingMavenProfileException(buildProfileId));
+  }
+
+  private static Predicate<Profile> profileMatch(BuildProfileId buildProfileId) {
+    return profile -> profile.getId().equals(buildProfileId.value());
+  }
+
+  @Override
+  public void handle(AddJavaBuildProfile command) {
+    Assert.notNull(COMMAND, command);
+
+    List<Profile> profiles = pomModel.getProfiles();
+    if (profiles.stream().noneMatch(profileMatch(command.buildProfileId()))) {
+      Profile profile = toMavenProfile(command);
+      pomModel.addProfile(profile);
     }
 
     writePom();
   }
 
-  private void appendProperties(SetVersion command) {
-    Match properties = $(PROPERTIES).append(LINE_BREAK).append(indentation.spaces());
+  private static Profile toMavenProfile(AddJavaBuildProfile command) {
+    Profile profile = new Profile();
+    profile.setId(command.buildProfileId().value());
+    command.activation().ifPresent(activation -> profile.setActivation(toMavenActivation(activation)));
 
-    appendPropertyLine(properties, command);
-
-    findFirst(PROPERTIES_ANCHORS).after(properties);
-
-    document.find("project > properties").before(LINE_BREAK).before(LINE_BREAK).before(indentation.spaces());
+    return profile;
   }
 
-  private void appendPropertyLine(Match properties, SetVersion command) {
-    Match propertyNode = properties.children().filter(command.property());
-
-    if (propertyNode.isNotEmpty()) {
-      propertyNode.text(command.dependencyVersion());
-    } else {
-      properties
-        .append(indentation.spaces())
-        .append($(command.property(), command.dependencyVersion()))
-        .append(LINE_BREAK)
-        .append(indentation.spaces());
-    }
+  private static Activation toMavenActivation(BuildProfileActivation activation) {
+    Activation mavenActivation = new Activation();
+    activation.activeByDefault().ifPresent(mavenActivation::setActiveByDefault);
+    return mavenActivation;
   }
 
   @Override
   public void handle(RemoveJavaDependencyManagement command) {
     Assert.notNull(COMMAND, command);
 
-    removeDependency("project > dependencyManagement > dependencies > dependency", command.dependency());
+    DependencyManagement dependencyManagement = command
+      .buildProfile()
+      .map(this::findProfile)
+      .map(Profile::getDependencyManagement)
+      .orElse(pomModel.getDependencyManagement());
+    if (dependencyManagement != null) {
+      removeDependencyFrom(command.dependency(), dependencyManagement.getDependencies())
+        .stream()
+        .map(Dependency::getVersion)
+        .forEach(this::removeUnusedVersionProperty);
+    }
   }
 
   @Override
   public void handle(RemoveDirectJavaDependency command) {
     Assert.notNull(COMMAND, command);
 
-    removeDependency("project > dependencies > dependency", command.dependency());
+    List<Dependency> dependencies = command
+      .buildProfile()
+      .map(this::findProfile)
+      .map(Profile::getDependencies)
+      .orElse(pomModel.getDependencies());
+
+    removeDependencyFrom(command.dependency(), dependencies)
+      .stream()
+      .map(Dependency::getVersion)
+      .forEach(this::removeUnusedVersionProperty);
   }
 
-  private void removeDependency(String rootPath, DependencyId dependency) {
-    document.find(rootPath).each().stream().filter(dependencyMatch(dependency)).forEach(Match::remove);
+  private List<Dependency> removeDependencyFrom(DependencyId dependency, List<Dependency> dependencies) {
+    List<Dependency> dependenciesToRemove = dependencies.stream().filter(matchesDependency(dependency)).toList();
+
+    if (!dependenciesToRemove.isEmpty()) {
+      dependencies.removeAll(dependenciesToRemove);
+      writePom();
+    }
+
+    return dependenciesToRemove;
+  }
+
+  private Predicate<Dependency> matchesDependency(DependencyId dependency) {
+    return mavenDependency -> {
+      boolean sameGroupId = mavenDependency.getGroupId().equals(dependency.groupId().get());
+      boolean sameArtifactId = mavenDependency.getArtifactId().equals(dependency.artifactId().get());
+      return sameGroupId && sameArtifactId;
+    };
+  }
+
+  private void removeUnusedVersionProperty(String version) {
+    extractVersionPropertyKey(version)
+      .filter(this::versionPropertyUnused)
+      .ifPresent(propertyKey -> {
+        pomModel.getProperties().remove(propertyKey);
+        writePom();
+      });
+  }
+
+  private Stream<Dependency> allDependencies() {
+    return Stream.of(
+      pomModel.getDependencies().stream(),
+      pomModel.getProfiles().stream().flatMap(profile -> profile.getDependencies().stream()),
+      dependenciesFrom(pomModel.getDependencyManagement()),
+      pomModel.getProfiles().stream().flatMap(profile -> dependenciesFrom(profile.getDependencyManagement()))
+    ).flatMap(Function.identity());
+  }
+
+  private Stream<Dependency> dependenciesFrom(DependencyManagement dependencyManagement) {
+    return dependencyManagement != null ? dependencyManagement.getDependencies().stream() : Stream.empty();
+  }
+
+  private Optional<String> extractVersionPropertyKey(String version) {
+    return VersionSlug.of(version).map(VersionSlug::propertyName);
+  }
+
+  private boolean versionPropertyUnused(String versionPropertyKey) {
+    return allDependencies()
+      .map(Dependency::getVersion)
+      .flatMap(version -> extractVersionPropertyKey(version).stream())
+      .noneMatch(versionPropertyKey::equals);
+  }
+
+  @Override
+  public void handle(AddMavenBuildExtension command) {
+    Assert.notNull(COMMAND, command);
+
+    projectBuild().addExtension(toMavenExtension(command.buildExtension()));
 
     writePom();
+  }
+
+  private Build projectBuild() {
+    if (pomModel.getBuild() == null) {
+      pomModel.setBuild(new Build());
+    }
+    return pomModel.getBuild();
+  }
+
+  private static Extension toMavenExtension(MavenBuildExtension mavenBuildExtension) {
+    Extension extension = new Extension();
+    extension.setArtifactId(mavenBuildExtension.artifactId().get());
+    extension.setGroupId(mavenBuildExtension.groupId().get());
+    mavenBuildExtension.versionSlug().map(VersionSlug::mavenVariable).ifPresent(extension::setVersion);
+    return extension;
   }
 
   @Override
   public void handle(AddJavaDependencyManagement command) {
     Assert.notNull(COMMAND, command);
 
-    Match dependencies = document.find("project > dependencyManagement > dependencies");
-    if (dependencies.isEmpty()) {
-      appendDependenciesManagement(command);
-    } else {
-      appendDependencyManagement(command, dependencies);
+    DependencyManagement dependencyManagement = command
+      .buildProfile()
+      .map(this::findProfile)
+      .map(this::dependencyManagement)
+      .orElse(dependencyManagement());
+    addDependencyTo(command.dependency(), dependencyManagement.getDependencies());
+  }
+
+  private DependencyManagement dependencyManagement(Profile mavenProfile) {
+    return Optional.ofNullable(mavenProfile.getDependencyManagement())
+      .or(() -> Optional.of(new DependencyManagement()))
+      .map(dependencyManagement -> {
+        mavenProfile.setDependencyManagement(dependencyManagement);
+        return dependencyManagement;
+      })
+      .orElseThrow();
+  }
+
+  private DependencyManagement dependencyManagement() {
+    if (pomModel.getDependencyManagement() == null) {
+      pomModel.setDependencyManagement(new DependencyManagement());
     }
-
-    writePom();
-  }
-
-  private void appendDependenciesManagement(AddJavaDependencyManagement command) {
-    Match dependencies = $(DEPENDENCY_MANAGEMENT)
-      .append(LINE_BREAK)
-      .append(indentation.times(2))
-      .append(
-        $(DEPENDENCIES)
-          .append(LINE_BREAK)
-          .append(indentation.times(3))
-          .append(dependencyNode(command, 3))
-          .append(LINE_BREAK)
-          .append(indentation.times(2))
-      )
-      .append(LINE_BREAK)
-      .append(indentation.spaces());
-
-    findFirst(DEPENDENCIES_ANCHORS).after(dependencies);
-
-    document.find("project > dependencyManagement").before(LINE_BREAK).before(LINE_BREAK).before(indentation.spaces());
-  }
-
-  private void appendDependencyManagement(AddJavaDependency command, Match dependencies) {
-    appendNotTestDependency(command, dependencies, 3);
+    return pomModel.getDependencyManagement();
   }
 
   @Override
   public void handle(AddDirectJavaDependency command) {
     Assert.notNull(COMMAND, command);
 
-    Match dependencies = document.find("project > dependencies");
-    if (dependencies.isEmpty()) {
-      appendDependencies(command);
+    List<Dependency> dependencies = command
+      .buildProfile()
+      .map(this::findProfile)
+      .map(Profile::getDependencies)
+      .orElse(pomModel.getDependencies());
+    addDependencyTo(command.dependency(), dependencies);
+  }
+
+  private void addDependencyTo(JavaDependency dependency, List<Dependency> dependencies) {
+    if (dependency.scope() == JavaDependencyScope.TEST) {
+      dependencies.add(toMavenDependency(dependency));
     } else {
-      appendDependency(command, dependencies);
+      Dependency mavenDependency = toMavenDependency(dependency);
+      insertDependencyBeforeFirstTestDependency(mavenDependency, dependencies);
     }
 
     writePom();
   }
 
-  private void appendDependencies(AddDirectJavaDependency command) {
-    Match dependencies = $(DEPENDENCIES)
-      .append(LINE_BREAK)
-      .append(indentation.times(2))
-      .append(dependencyNode(command, 2))
-      .append(LINE_BREAK)
-      .append(indentation.spaces());
-
-    findFirst(DEPENDENCIES_ANCHORS).after(dependencies);
-
-    document.find("project > dependencies").before(LINE_BREAK).before(LINE_BREAK).before(indentation.spaces());
-  }
-
-  private void appendDependency(AddDirectJavaDependency command, Match dependencies) {
-    if (command.scope() == JavaDependencyScope.TEST) {
-      appendDependencyInLastPosition(command, dependencies, 2);
-    } else {
-      appendNotTestDependency(command, dependencies, 2);
-    }
-  }
-
-  private void appendNotTestDependency(AddJavaDependency command, Match dependencies, int level) {
-    dependencies
-      .children()
-      .each()
+  private void insertDependencyBeforeFirstTestDependency(Dependency mavenDependency, List<Dependency> dependencies) {
+    List<Dependency> nonTestDependencies = dependencies
       .stream()
-      .filter(testDependency())
-      .findFirst()
-      .ifPresentOrElse(appendBeforeFirstTestDependency(command, level), () -> appendDependencyInLastPosition(command, dependencies, level));
+      .filter(dependency -> !MavenScope.TEST.key().equals(dependency.getScope()))
+      .toList();
+    if (nonTestDependencies.isEmpty()) {
+      dependencies.add(mavenDependency);
+    } else {
+      dependencies.add(dependencies.indexOf(nonTestDependencies.getLast()) + 1, mavenDependency);
+    }
   }
 
-  private Consumer<Match> appendBeforeFirstTestDependency(AddJavaDependency command, int level) {
-    return firstTestDependency -> {
-      Match dependencyNode = dependencyNode(command, level);
-      firstTestDependency.before(dependencyNode);
+  private Dependency toMavenDependency(JavaDependency javaDependency) {
+    Dependency mavenDependency = new Dependency();
+    mavenDependency.setGroupId(javaDependency.id().groupId().get());
+    mavenDependency.setArtifactId(javaDependency.id().artifactId().get());
+    javaDependency.version().map(VersionSlug::mavenVariable).ifPresent(mavenDependency::setVersion);
+    javaDependency.classifier().map(JavaDependencyClassifier::get).ifPresent(mavenDependency::setClassifier);
+    javaDependency.type().map(type -> Enums.map(type, MavenType.class)).map(MavenType::key).ifPresent(mavenDependency::setType);
+    javaDependency.exclusions().stream().map(toMavenExclusion()).forEach(mavenDependency::addExclusion);
 
-      document
-        .find("project > dependencies > dependency")
-        .each()
-        .stream()
-        .filter(dependencyMatch(command.dependencyId()))
-        .findFirst()
-        .ifPresent(node -> node.after(indentation.times(level)).after(LINE_BREAK).after(LINE_BREAK));
+    if (javaDependency.scope() != JavaDependencyScope.COMPILE) {
+      mavenDependency.setScope(Enums.map(javaDependency.scope(), MavenScope.class).key());
+    }
+    if (javaDependency.optional()) {
+      mavenDependency.setOptional(true);
+    }
+
+    return mavenDependency;
+  }
+
+  private Function<DependencyId, Exclusion> toMavenExclusion() {
+    return dependencyId -> {
+      Exclusion mavenExclusion = new Exclusion();
+      mavenExclusion.setGroupId(dependencyId.groupId().get());
+      mavenExclusion.setArtifactId(dependencyId.artifactId().get());
+      return mavenExclusion;
     };
-  }
-
-  private Predicate<Match> dependencyMatch(DependencyId dependency) {
-    return dependencyNode -> {
-      boolean sameGroupId = dependencyNode.child(GROUP_ID).text().equals(dependency.groupId().get());
-      boolean sameArtifactId = dependencyNode.child(ARTIFACT_ID).text().equals(dependency.artifactId().get());
-
-      return sameGroupId && sameArtifactId;
-    };
-  }
-
-  private Predicate<Match> testDependency() {
-    return dependency -> "test".equals(dependency.child("scope").text());
-  }
-
-  private void appendDependencyInLastPosition(AddJavaDependency command, Match dependencies, int level) {
-    dependencies
-      .append(LINE_BREAK)
-      .append(indentation.times(level))
-      .append(dependencyNode(command, level))
-      .append(LINE_BREAK)
-      .append(indentation.times(level - 1));
-  }
-
-  private Match dependencyNode(AddJavaDependency command, int level) {
-    Match dependency = buildDependencyNode(command, level);
-
-    appendVersion(command.version(), dependency, level);
-    appendClassifier(command.classifier(), dependency, level);
-    appendScope(command, dependency, level);
-    appendOptional(command, dependency, level);
-    appendType(command, dependency, level);
-    appendExclusions(command, dependency, level);
-
-    dependency.append(LINE_BREAK).append(indentation.times(level));
-
-    return dependency;
-  }
-
-  private Match buildDependencyNode(AddJavaDependency command, int level) {
-    return appendDependencyId($("dependency"), command.dependencyId(), level);
-  }
-
-  private void appendScope(AddJavaDependency command, Match dependency, int level) {
-    if (command.scope() != JavaDependencyScope.COMPILE) {
-      dependency
-        .append(LINE_BREAK)
-        .append(indentation.times(level + 1))
-        .append($("scope", Enums.map(command.scope(), MavenScope.class).key()));
-    }
-  }
-
-  private void appendOptional(AddJavaDependency command, Match dependency, int level) {
-    if (command.optional()) {
-      dependency.append(LINE_BREAK).append(indentation.times(level + 1)).append($("optional", "true"));
-    }
-  }
-
-  private void appendType(AddJavaDependency command, Match dependency, int level) {
-    command
-      .dependencyType()
-      .ifPresent(type ->
-        dependency.append(LINE_BREAK).append(indentation.times(level + 1)).append($("type", Enums.map(type, MavenType.class).key()))
-      );
-  }
-
-  private void appendExclusions(AddJavaDependency command, Match dependency, int level) {
-    Collection<DependencyId> exclusions = command.exclusions();
-    if (exclusions.isEmpty()) {
-      return;
-    }
-
-    dependency.append(LINE_BREAK).append(indentation.times(level + 1)).append(buildExclusionsNode(level, exclusions));
-  }
-
-  private Match buildExclusionsNode(int level, Collection<DependencyId> exclusions) {
-    Match exclusionsNode = $("exclusions");
-
-    exclusions.stream().map(toExclusionNode(level)).forEach(appendExclusionNode(level, exclusionsNode));
-
-    exclusionsNode.append(LINE_BREAK).append(indentation.times(level + 1));
-
-    return exclusionsNode;
-  }
-
-  private Function<DependencyId, Match> toExclusionNode(int level) {
-    return exculsion -> appendDependencyId($("exclusion"), exculsion, level + 2).append(LINE_BREAK).append(indentation.times(level + 2));
-  }
-
-  private Consumer<Match> appendExclusionNode(int level, Match exclusionsNode) {
-    return exclusionNode -> exclusionsNode.append(LINE_BREAK).append(indentation.times(level + 2)).append(exclusionNode);
   }
 
   @Override
-  public void handle(AddBuildPluginManagement command) {
+  public void handle(AddMavenPluginManagement command) {
     Assert.notNull(COMMAND, command);
 
-    Match pluginNode = pluginNode(command, 4);
+    command.pluginVersion().ifPresent(version -> handle(new SetVersion(version)));
+    command.dependenciesVersions().forEach(version -> handle(new SetVersion(version)));
 
-    Match buildNode = findBuildNode();
-    if (buildNode.isEmpty()) {
-      appendBuildNode(pluginManagementNode(pluginNode));
-    } else {
-      appendPluginManagementInBuildNode(pluginNode, buildNode);
-    }
+    PluginManagement pluginManagement = command
+      .buildProfile()
+      .map(this::findProfile)
+      .map(this::pluginManagement)
+      .orElse(pluginManagement());
+    replaceOrAddPlugin(pluginManagement.getPlugins(), toMavenPlugin(command));
 
     writePom();
   }
 
-  private void appendPluginManagementInBuildNode(Match pluginNode, Match buildNode) {
-    Match pluginManagementNode = buildNode.child("pluginManagement");
-
-    if (pluginManagementNode.isEmpty()) {
-      appendPluginManagement(pluginNode, buildNode);
-    } else {
-      appendInPluginManagement(pluginNode, pluginManagementNode);
+  private PluginManagement pluginManagement(Profile mavenProfile) {
+    if (profileBuild(mavenProfile).getPluginManagement() == null) {
+      profileBuild(mavenProfile).setPluginManagement(new PluginManagement());
     }
+    return profileBuild(mavenProfile).getPluginManagement();
   }
 
-  private Match appendPluginManagement(Match pluginNode, Match buildNode) {
-    return buildNode.append(indentation.times(1)).append(pluginManagementNode(pluginNode)).append(LINE_BREAK).append(indentation.times(1));
-  }
-
-  private void appendInPluginManagement(Match pluginNode, Match pluginManagementNode) {
-    Match pluginsNode = pluginManagementNode.child(PLUGINS);
-
-    if (pluginsNode.isEmpty()) {
-      appendPluginsNode(pluginManagementNode, pluginNode, 4);
-    } else {
-      appendPluginNode(pluginsNode, pluginNode, 4);
+  private PluginManagement pluginManagement() {
+    if (projectBuild().getPluginManagement() == null) {
+      projectBuild().setPluginManagement(new PluginManagement());
     }
-  }
-
-  private Match pluginManagementNode(Match pluginNode) {
-    return $("pluginManagement")
-      .append(LINE_BREAK)
-      .append(indentation.times(3))
-      .append(pluginsNode(pluginNode, 4))
-      .append(LINE_BREAK)
-      .append(indentation.times(2));
+    return projectBuild().getPluginManagement();
   }
 
   @Override
-  public void handle(AddDirectJavaBuildPlugin command) {
+  public void handle(AddDirectMavenPlugin command) {
     Assert.notNull(COMMAND, command);
 
-    Match pluginNode = pluginNode(command, 3);
+    command.pluginVersion().ifPresent(version -> handle(new SetVersion(version)));
+    command.dependenciesVersions().forEach(version -> handle(new SetVersion(version)));
 
-    Match buildNode = findBuildNode();
-    if (buildNode.isEmpty()) {
-      appendBuildNode(pluginsNode(pluginNode, 3));
-    } else {
-      appendPluginInBuildNode(pluginNode, buildNode);
-    }
+    BuildBase build = command.buildProfile().map(this::findProfile).map(this::profileBuild).orElse(projectBuild());
+    replaceOrAddPlugin(build.getPlugins(), toMavenPlugin(command));
 
     writePom();
   }
 
-  private void appendPluginInBuildNode(Match pluginNode, Match buildNode) {
-    Match pluginsNode = buildNode.child(PLUGINS);
-
-    if (pluginsNode.isEmpty()) {
-      appendPluginsNode(buildNode, pluginNode, 3);
-    } else {
-      appendPluginNode(pluginsNode, pluginNode, 3);
+  private static void replaceOrAddPlugin(List<Plugin> plugins, Plugin newPlugin) {
+    for (int i = 0; i < plugins.size(); i++) {
+      Plugin existingPlugin = plugins.get(i);
+      if (existingPlugin.getGroupId().equals(newPlugin.getGroupId()) && existingPlugin.getArtifactId().equals(newPlugin.getArtifactId())) {
+        plugins.set(i, newPlugin);
+        return;
+      }
     }
+    plugins.add(newPlugin);
   }
 
-  private Match appendPluginsNode(Match parent, Match pluginNode, int level) {
-    return parent
-      .append(indentation.times(1))
-      .append(pluginsNode(pluginNode, level))
-      .append(LINE_BREAK)
-      .append(indentation.times(level - 2));
-  }
-
-  private Match pluginsNode(Match pluginNode, int level) {
-    return $(PLUGINS)
-      .append(LINE_BREAK)
-      .append(indentation.times(level))
-      .append(pluginNode.append(indentation.times(level)))
-      .append(LINE_BREAK)
-      .append(indentation.times(level - 1));
-  }
-
-  private void appendBuildNode(Match innerNode) {
-    Match build = $("build")
-      .append(LINE_BREAK)
-      .append(indentation.times(2))
-      .append(innerNode)
-      .append(LINE_BREAK)
-      .append(indentation.times(1));
-
-    findFirst(BUILD_ANCHORS).after(build);
-
-    findBuildNode().before(LINE_BREAK).before(LINE_BREAK).before(indentation.spaces());
-  }
-
-  private Match findBuildNode() {
-    return document.find("project > build");
-  }
-
-  private Match appendPluginNode(Match pluginsNode, Match pluginNode, int level) {
-    return pluginsNode
-      .append(indentation.times(1))
-      .append(pluginNode.append(indentation.times(level)))
-      .append(LINE_BREAK)
-      .append(indentation.times(level - 1));
-  }
-
-  private Match pluginNode(AddJavaBuildPlugin command, int level) {
-    Match pluginNode = appendDependencyId($("plugin"), command.dependencyId(), level);
-
-    appendVersion(command.versionSlug(), pluginNode, level);
-
-    command.additionalElements().ifPresent(appendAdditionalElements(pluginNode, level));
-
-    return pluginNode.append(LINE_BREAK);
-  }
-
-  private Match appendDependencyId(Match node, DependencyId dependency, int level) {
-    return node
-      .append(LINE_BREAK)
-      .append(indentation.times(level + 1))
-      .append($(GROUP_ID, dependency.groupId().get()))
-      .append(LINE_BREAK)
-      .append(indentation.times(level + 1))
-      .append($(ARTIFACT_ID, dependency.artifactId().get()));
-  }
-
-  private void appendVersion(Optional<VersionSlug> versionSlug, Match node, int level) {
-    versionSlug.ifPresent(version ->
-      node.append(LINE_BREAK).append(indentation.times(level + 1)).append($(VERSION, version.mavenVariable()))
-    );
-  }
-
-  private void appendClassifier(Optional<JavaDependencyClassifier> classifier, Match node, int level) {
-    classifier.ifPresent(depClassifier ->
-      node.append(LINE_BREAK).append(indentation.times(level + 1)).append($(CLASSIFIER, depClassifier.get()))
-    );
-  }
-
-  private Consumer<JavaBuildPluginAdditionalElements> appendAdditionalElements(Match pluginNode, int level) {
-    return additionalElements ->
-      pluginNode.append(LINE_BREAK).append(indentation.times(level + 1)).append(formatAdditionalElements(additionalElements, level + 1));
-  }
-
-  private String formatAdditionalElements(JavaBuildPluginAdditionalElements additionalElements, int level) {
-    try (StringWriter stringWriter = new StringWriter()) {
-      org.dom4j.Document additionalElementsDocument = DocumentHelper.parseText("<root>" + additionalElements.get() + "</root>");
-      XMLWriter writer = new XMLWriter(stringWriter, buildFormat());
-      writer.write(additionalElementsDocument);
-
-      String result = stringWriter.toString();
-
-      return result
-        .substring(10, result.length() - 10)
-        .replaceAll(FORMATTED_LINE_END, RESULTING_LINE_END)
-        .indent((level - 1) * indentation.spacesCount());
-    } catch (DocumentException | IOException e) {
-      throw new MalformedAdditionalInformationException(e);
+  private BuildBase profileBuild(Profile mavenProfile) {
+    if (mavenProfile.getBuild() == null) {
+      mavenProfile.setBuild(new Build());
     }
+    return mavenProfile.getBuild();
   }
 
-  private OutputFormat buildFormat() {
-    OutputFormat format = OutputFormat.createPrettyPrint();
+  @Override
+  public void handle(AddGradlePlugin command) {
+    // Gradle commands are ignored
+  }
 
-    format.setIndentSize(indentation.spacesCount());
-    format.setSuppressDeclaration(true);
-    format.setEncoding("UTF-8");
+  @Override
+  public void handle(AddGradleConfiguration command) {
+    // Gradle commands are ignored
+  }
 
-    return format;
+  @Override
+  public void handle(AddGradleTasksTestInstruction command) {
+    // Gradle commands are ignored
+  }
+
+  private Plugin toMavenPlugin(AddMavenPlugin command) {
+    Plugin mavenPlugin = new Plugin();
+    mavenPlugin.setArtifactId(command.dependencyId().artifactId().get());
+    mavenPlugin.setGroupId(command.dependencyId().groupId().get());
+    command.versionSlug().map(VersionSlug::mavenVariable).ifPresent(mavenPlugin::setVersion);
+    command.configuration().map(toMavenConfiguration()).ifPresent(mavenPlugin::setConfiguration);
+    command.executions().stream().map(toMavenExecution()).forEach(mavenPlugin::addExecution);
+    command.dependencies().stream().map(this::toMavenDependency).forEach(mavenPlugin::addDependency);
+    return mavenPlugin;
+  }
+
+  private Function<MavenPluginExecution, PluginExecution> toMavenExecution() {
+    return execution -> {
+      PluginExecution mavenExecution = new PluginExecution();
+      execution.id().map(MavenPluginExecutionId::get).ifPresent(mavenExecution::setId);
+      execution.phase().map(MavenBuildPhase::mavenKey).ifPresent(mavenExecution::setPhase);
+      execution.goals().stream().map(MavenPluginExecutionGoal::get).forEach(mavenExecution::addGoal);
+      execution.configuration().map(toMavenConfiguration()).ifPresent(mavenExecution::setConfiguration);
+      return mavenExecution;
+    };
+  }
+
+  private Function<MavenPluginConfiguration, Xpp3Dom> toMavenConfiguration() {
+    return configuration -> {
+      try (Reader reader = new StringReader("<configuration>" + configuration.get() + "</configuration>")) {
+        return Xpp3DomBuilder.build(reader);
+      } catch (XmlPullParserException | IOException e) {
+        throw new MalformedAdditionalInformationException(e);
+      }
+    };
   }
 
   @ExcludeFromGeneratedCodeCoverage(reason = "The exception handling is hard to test and an implementation detail")
   private void writePom() {
-    try (Writer writer = Files.newBufferedWriter(pomPath, StandardCharsets.UTF_8)) {
-      writer.write(HEADER);
+    StringWriter stringWriter = new StringWriter();
+    Maven.writeModel(pomModel, pomPath, stringWriter);
 
-      for (Element e : document) {
-        String element = JOOX.$(e).toString().replace("\r\n", LINE_BREAK).replace(" xmlns=\"\"", "");
-
-        element = SPACES_ONLY_LINE.matcher(element).replaceAll("");
-
-        writer.write(element);
-      }
+    try {
+      Files.writeString(pomPath, applyIndentation(stringWriter.toString()), StandardCharsets.UTF_8);
     } catch (IOException e) {
       throw GeneratorException.technicalError("Error writing pom: " + e.getMessage(), e);
     }
   }
 
-  private Match findFirst(String... elements) {
-    return Stream
-      .of(elements)
-      .map(element -> "project > " + element)
-      .map(document::find)
-      .filter(Match::isNotEmpty)
-      .findFirst()
-      .orElseThrow(InvalidPomException::new);
+  private String applyIndentation(String pomContent) {
+    if (indentation.spacesCount() == DEFAULT_MAVEN_INDENTATION) {
+      return pomContent;
+    }
+    return pomContent.replace(" ".repeat(DEFAULT_MAVEN_INDENTATION), indentation.spaces());
   }
 }

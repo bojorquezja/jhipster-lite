@@ -56,8 +56,7 @@ public final class JHipsterModulesResourceFixture {
   }
 
   public static JHipsterModulePropertiesDefinition propertiesDefinition() {
-    return JHipsterModulePropertiesDefinition
-      .builder()
+    return JHipsterModulePropertiesDefinition.builder()
       .addBasePackage()
       .addIndentation()
       .addProjectName()
@@ -69,7 +68,7 @@ public final class JHipsterModulesResourceFixture {
       .build();
   }
 
-  public static class JHipsterTestModuleResourceBuilder {
+  public static final class JHipsterTestModuleResourceBuilder {
 
     private String slug;
     private String group = "group";
@@ -132,10 +131,9 @@ public final class JHipsterModulesResourceFixture {
     }
 
     public JHipsterModuleResource build() {
-      return JHipsterModuleResource
-        .builder()
+      return JHipsterModuleResource.builder()
         .slug(() -> slug)
-        .propertiesDefinition(JHipsterModulesResourceFixture.propertiesDefinition())
+        .propertiesDefinition(propertiesDefinition())
         .apiDoc(group, operation)
         .organization(buildOrganization())
         .tags(tags)

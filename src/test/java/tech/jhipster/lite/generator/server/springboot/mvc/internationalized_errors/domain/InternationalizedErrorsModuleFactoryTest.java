@@ -16,8 +16,7 @@ class InternationalizedErrorsModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .projectBaseName("jhipster")
       .build();
@@ -28,25 +27,25 @@ class InternationalizedErrorsModuleFactoryTest {
       .hasFile("pom.xml")
       .containing(
         """
-                <dependency>
-                  <groupId>org.reflections</groupId>
-                  <artifactId>reflections</artifactId>
-                  <version>${reflections.version}</version>
-                  <scope>test</scope>
-                </dependency>
-            """
+            <dependency>
+              <groupId>org.reflections</groupId>
+              <artifactId>reflections</artifactId>
+              <version>${reflections.version}</version>
+              <scope>test</scope>
+            </dependency>
+        """
       )
       .and()
       .hasFiles("documentation/application-errors.md")
       .hasPrefixedFiles(
-        "src/main/java/com/jhipster/test/error/domain",
+        "src/main/java/com/jhipster/test/shared/error/domain",
         "ErrorStatus.java",
         "ErrorKey.java",
         "StandardErrorKey.java",
         "JhipsterException.java"
       )
       .hasPrefixedFiles(
-        "src/main/java/com/jhipster/test/error/infrastructure/primary",
+        "src/main/java/com/jhipster/test/shared/error/infrastructure/primary",
         "ArgumentsReplacer.java",
         "AssertionErrorsConfiguration.java",
         "AssertionErrorsHandler.java",
@@ -64,20 +63,20 @@ class InternationalizedErrorsModuleFactoryTest {
         "jhipster-errors-messages_fr.properties"
       )
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/error/infrastructure/primary",
-        "JhipsterErrorsHandlerIntTest.java",
+        "src/test/java/com/jhipster/test/shared/error/infrastructure/primary",
+        "JhipsterErrorsHandlerIT.java",
         "JhipsterErrorsHandlerTest.java",
         "JhipsterErrorsMessagesTest.java",
         "JhipsterExceptionFactory.java",
         "ArgumentsReplacerTest.java",
         "AssertionErrorMessagesTest.java",
-        "AssertionErrorsHandlerIntTest.java",
+        "AssertionErrorsHandlerIT.java",
         "AssertionErrorsHandlerTest.java"
       )
-      .hasPrefixedFiles("src/test/java/com/jhipster/test/error/domain", "JhipsterExceptionTest.java", "ErrorKeyTest.java")
-      .hasFiles("src/test/java/com/jhipster/test/error_generator/domain/NullElementInCollectionExceptionFactory.java")
+      .hasPrefixedFiles("src/test/java/com/jhipster/test/shared/error/domain", "JhipsterExceptionTest.java", "ErrorKeyTest.java")
+      .hasFiles("src/test/java/com/jhipster/test/shared/error_generator/domain/NullElementInCollectionExceptionFactory.java")
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/error_generator/infrastructure/primary",
+        "src/test/java/com/jhipster/test/shared/error_generator/infrastructure/primary",
         "AssertionsErrorsResource.java",
         "JhipsterErrorsResource.java"
       );

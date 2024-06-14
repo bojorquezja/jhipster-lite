@@ -3,6 +3,7 @@ package tech.jhipster.lite.module.infrastructure.secondary;
 import static org.assertj.core.api.Assertions.*;
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 import static tech.jhipster.lite.module.domain.JHipsterModule.from;
+import static tech.jhipster.lite.module.domain.JHipsterModulesFixture.*;
 
 import ch.qos.logback.classic.Level;
 import java.io.IOException;
@@ -10,31 +11,38 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import tech.jhipster.lite.Logs;
 import tech.jhipster.lite.LogsSpy;
+import tech.jhipster.lite.LogsSpyExtension;
 import tech.jhipster.lite.TestFileUtils;
 import tech.jhipster.lite.UnitTest;
-import tech.jhipster.lite.error.domain.GeneratorException;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
 import tech.jhipster.lite.module.domain.JHipsterProjectFilePath;
 import tech.jhipster.lite.module.domain.file.JHipsterFileToMove;
 import tech.jhipster.lite.module.domain.file.JHipsterFilesToDelete;
 import tech.jhipster.lite.module.domain.file.JHipsterFilesToMove;
+import tech.jhipster.lite.module.domain.file.JHipsterTemplatedFile;
+import tech.jhipster.lite.module.domain.file.JHipsterTemplatedFiles;
+import tech.jhipster.lite.module.domain.file.TemplateRenderer;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
 
 @UnitTest
-@ExtendWith(LogsSpy.class)
+@ExtendWith(LogsSpyExtension.class)
 class FileSystemJHipsterModuleFilesTest {
 
-  private static final FileSystemJHipsterModuleFiles files = new FileSystemJHipsterModuleFiles(new FileSystemProjectFilesReader());
+  private static final FileSystemJHipsterModuleFiles files = new FileSystemJHipsterModuleFiles(
+    new FileSystemProjectFiles(),
+    TemplateRenderer.NOOP
+  );
 
-  private final LogsSpy logs;
-
-  public FileSystemJHipsterModuleFilesTest(LogsSpy logs) {
-    this.logs = logs;
-  }
+  @Logs
+  private LogsSpy logs;
 
   @Test
   void shouldNotWriteOnUnwritablePath() {
@@ -46,7 +54,7 @@ class FileSystemJHipsterModuleFilesTest {
       .and()
       .build();
 
-    assertThatThrownBy(() -> files.create(project, module.templatedFiles())).isExactlyInstanceOf(GeneratorException.class);
+    assertThatThrownBy(() -> files.create(project, templatedFilesFrom(module))).isExactlyInstanceOf(GeneratorException.class);
   }
 
   @Test
@@ -59,21 +67,30 @@ class FileSystemJHipsterModuleFilesTest {
       .and()
       .build();
 
-    files.create(project, module.templatedFiles());
+    files.create(project, templatedFilesFrom(module));
 
     logs.shouldHave(Level.DEBUG, "MainApp.java");
+  }
+
+  @NotNull
+  private static JHipsterTemplatedFiles templatedFilesFrom(JHipsterModule module) {
+    Assert.notEmpty("module.filesToAdd", module.filesToAdd());
+    return new JHipsterTemplatedFiles(
+      List.of(JHipsterTemplatedFile.builder().file(module.filesToAdd().iterator().next()).context(context()).build())
+    );
   }
 
   @Test
   void shouldNotMoveUnknownFile() {
     JHipsterProjectFolder project = new JHipsterProjectFolder(TestFileUtils.tmpDirForTest());
 
-    assertThatThrownBy(() ->
+    assertThatThrownBy(
+      () ->
         files.move(
           project,
           new JHipsterFilesToMove(List.of(new JHipsterFileToMove(new JHipsterProjectFilePath("unknown-file"), to("dummy"))))
         )
-      )
+    )
       .isExactlyInstanceOf(UnknownFileToMoveException.class)
       .hasMessageContaining("unknown-file");
   }

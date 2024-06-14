@@ -1,62 +1,86 @@
 package tech.jhipster.lite.module.infrastructure.secondary.javadependency;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import org.springframework.stereotype.Service;
-import tech.jhipster.lite.common.domain.ExcludeFromGeneratedCodeCoverage;
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.Indentation;
-import tech.jhipster.lite.module.domain.javabuild.command.AddBuildPluginManagement;
-import tech.jhipster.lite.module.domain.javabuild.command.AddDirectJavaBuildPlugin;
-import tech.jhipster.lite.module.domain.javabuild.command.AddDirectJavaDependency;
-import tech.jhipster.lite.module.domain.javabuild.command.AddJavaDependencyManagement;
-import tech.jhipster.lite.module.domain.javabuild.command.JavaBuildCommand;
-import tech.jhipster.lite.module.domain.javabuild.command.JavaBuildCommands;
-import tech.jhipster.lite.module.domain.javabuild.command.RemoveDirectJavaDependency;
-import tech.jhipster.lite.module.domain.javabuild.command.RemoveJavaDependencyManagement;
-import tech.jhipster.lite.module.domain.javabuild.command.SetVersion;
+import tech.jhipster.lite.module.domain.JHipsterModuleContext;
+import tech.jhipster.lite.module.domain.javabuild.JavaBuildTool;
+import tech.jhipster.lite.module.domain.javabuild.ProjectJavaBuildToolRepository;
+import tech.jhipster.lite.module.domain.javabuild.command.*;
 import tech.jhipster.lite.module.domain.properties.JHipsterProjectFolder;
+import tech.jhipster.lite.module.infrastructure.secondary.FileSystemJHipsterModuleFiles;
+import tech.jhipster.lite.module.infrastructure.secondary.FileSystemReplacer;
 import tech.jhipster.lite.module.infrastructure.secondary.javadependency.gradle.GradleCommandHandler;
 import tech.jhipster.lite.module.infrastructure.secondary.javadependency.maven.MavenCommandHandler;
+import tech.jhipster.lite.shared.error.domain.Assert;
+import tech.jhipster.lite.shared.generation.domain.ExcludeFromGeneratedCodeCoverage;
 
 @Service
 public class FileSystemJavaBuildCommandsHandler {
 
-  public void handle(Indentation indentation, JHipsterProjectFolder projectFolder, JavaBuildCommands commands) {
+  private final ProjectJavaBuildToolRepository javaBuildTools;
+  private final FileSystemJHipsterModuleFiles files;
+  private final FileSystemReplacer fileReplacer;
+
+  public FileSystemJavaBuildCommandsHandler(
+    ProjectJavaBuildToolRepository javaBuildTools,
+    FileSystemJHipsterModuleFiles files,
+    FileSystemReplacer fileReplacer
+  ) {
+    this.javaBuildTools = javaBuildTools;
+    this.files = files;
+    this.fileReplacer = fileReplacer;
+  }
+
+  public void handle(
+    Indentation indentation,
+    JHipsterProjectFolder projectFolder,
+    JHipsterModuleContext context,
+    JavaBuildCommands commands
+  ) {
     Assert.notNull("indentation", indentation);
     Assert.notNull("projectFolder", projectFolder);
+    Assert.notNull("context", context);
     Assert.notNull("commands", commands);
 
     if (commands.isEmpty()) {
       return;
     }
 
-    JavaDependenciesCommandHandler handler = buildCommandHandler(indentation, projectFolder);
+    JavaDependenciesCommandHandler handler = buildCommandHandler(indentation, projectFolder, context);
 
     commands.get().forEach(command -> handle(handler, command));
   }
 
-  private static JavaDependenciesCommandHandler buildCommandHandler(Indentation indentation, JHipsterProjectFolder projectFolder) {
-    Path pomPath = projectFolder.filePath("pom.xml");
-    if (Files.exists(pomPath)) {
-      return new MavenCommandHandler(indentation, pomPath);
-    }
-    if (Files.exists(projectFolder.filePath("build.gradle.kts"))) {
-      return new GradleCommandHandler(indentation, projectFolder);
-    }
-    throw new MissingJavaBuildConfigurationException(projectFolder);
+  private JavaDependenciesCommandHandler buildCommandHandler(
+    Indentation indentation,
+    JHipsterProjectFolder projectFolder,
+    JHipsterModuleContext context
+  ) {
+    JavaBuildTool javaBuildTool = javaBuildTools
+      .detect(projectFolder)
+      .orElseThrow(() -> new MissingJavaBuildConfigurationException(projectFolder));
+    return switch (javaBuildTool) {
+      case MAVEN -> new MavenCommandHandler(indentation, projectFolder.filePath("pom.xml"));
+      case GRADLE -> new GradleCommandHandler(indentation, projectFolder, context, files, fileReplacer);
+    };
   }
 
   @ExcludeFromGeneratedCodeCoverage(reason = "Jacoco thinks there is a missed branch")
   private void handle(JavaDependenciesCommandHandler handler, JavaBuildCommand command) {
-    switch (command.type()) {
-      case SET_VERSION -> handler.handle((SetVersion) command);
-      case REMOVE_DEPENDENCY_MANAGEMENT -> handler.handle((RemoveJavaDependencyManagement) command);
-      case ADD_DEPENDENCY_MANAGEMENT -> handler.handle((AddJavaDependencyManagement) command);
-      case REMOVE_DEPENDENCY -> handler.handle((RemoveDirectJavaDependency) command);
-      case ADD_DEPENDENCY -> handler.handle((AddDirectJavaDependency) command);
-      case ADD_DIRECT_JAVA_BUILD_PLUGIN -> handler.handle((AddDirectJavaBuildPlugin) command);
-      case ADD_JAVA_BUILD_PLUGIN_MANAGEMENT -> handler.handle((AddBuildPluginManagement) command);
+    switch (command) {
+      case SetVersion setVersion -> handler.handle(setVersion);
+      case SetBuildProperty setBuildProperty -> handler.handle(setBuildProperty);
+      case RemoveJavaDependencyManagement removeJavaDependencyManagement -> handler.handle(removeJavaDependencyManagement);
+      case AddJavaDependencyManagement addJavaDependencyManagement -> handler.handle(addJavaDependencyManagement);
+      case RemoveDirectJavaDependency removeDirectJavaDependency -> handler.handle(removeDirectJavaDependency);
+      case AddDirectJavaDependency addDirectJavaDependency -> handler.handle(addDirectJavaDependency);
+      case AddDirectMavenPlugin addDirectMavenPlugin -> handler.handle(addDirectMavenPlugin);
+      case AddMavenPluginManagement addMavenPluginManagement -> handler.handle(addMavenPluginManagement);
+      case AddMavenBuildExtension addMavenBuildExtension -> handler.handle(addMavenBuildExtension);
+      case AddJavaBuildProfile addJavaBuildProfile -> handler.handle(addJavaBuildProfile);
+      case AddGradlePlugin addGradlePlugin -> handler.handle(addGradlePlugin);
+      case AddGradleConfiguration addGradleConfiguration -> handler.handle(addGradleConfiguration);
+      case AddGradleTasksTestInstruction addGradleTasksTestInstruction -> handler.handle(addGradleTasksTestInstruction);
     }
   }
 }

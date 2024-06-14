@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.server.pagination.domainmodel.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,8 +14,7 @@ class PaginationDomainModuleConfiguration {
 
   @Bean
   public JHipsterModuleResource paginationDomainModule(PaginationDomainApplicationService paginationDomain) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(PAGINATION_DOMAIN)
       .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().addProjectBaseName().build())
       .apiDoc("Pagination", "Add domain model for pagination management")

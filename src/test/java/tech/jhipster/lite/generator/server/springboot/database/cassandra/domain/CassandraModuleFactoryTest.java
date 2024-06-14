@@ -32,8 +32,7 @@ class CassandraModuleFactoryTest {
   void shouldBuildModule() {
     when(dockerImages.get("cassandra")).thenReturn(new DockerImageVersion("cassandra", "4.0.7"));
 
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .build();
 
@@ -63,39 +62,54 @@ class CassandraModuleFactoryTest {
       .hasFile("documentation/cassandra.md")
       .and()
       .hasFile("README.md")
-      .containing("""
+      .containing(
+        """
         ```bash
         docker compose -f src/main/docker/cassandra.yml up -d
         ```
-        """)
+        """
+      )
       .and()
       .hasFile("src/main/docker/cassandra.yml")
       .containing("cassandra:4.0.7")
       .containing("CASSANDRA_DC=" + DC)
       .and()
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("spring.cassandra.contact-points=127.0.0.1")
-      .containing("#spring.cassandra.keyspace-name=yourKeyspace")
-      .containing("spring.cassandra.port=9042")
-      .containing("spring.cassandra.local-datacenter=" + DC)
-      .containing("spring.cassandra.schema-action=none")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        // language=yaml
+        """
+        spring:
+          cassandra:
+            contact-points: 127.0.0.1
+            # keyspace-name: yourKeyspace
+            local-datacenter: datacenter1
+            port: 9042
+            schema-action: none
+        """
+      )
       .and()
       .hasFiles("src/test/java/com/jhipster/test/CassandraKeyspaceIT.java")
       .hasFile("src/test/java/com/jhipster/test/TestCassandraManager.java")
       .containing("cassandra:4.0.7")
       .and()
       .hasPrefixedFiles(
-        "src/main/java/com/jhipster/test/technical/infrastructure/secondary/cassandra",
+        "src/main/java/com/jhipster/test/wire/cassandra/infrastructure/secondary",
         "CassandraDatabaseConfiguration.java",
         "CassandraJSR310DateConverters.java"
       )
-      .hasFiles("src/test/java/com/jhipster/test/technical/infrastructure/secondary/cassandra/CassandraJSR310DateConvertersTest.java")
-      .hasFile("src/test/resources/config/application.properties")
-      .containing("spring.cassandra.port=${TEST_CASSANDRA_PORT}")
-      .containing("spring.cassandra.contact-points=${TEST_CASSANDRA_CONTACT_POINT}")
-      .containing("spring.cassandra.local-datacenter=${TEST_CASSANDRA_DC}")
-      .containing("spring.cassandra.keyspace-name=${TEST_CASSANDRA_KEYSPACE}")
-      .containing("spring.cassandra.schema-action=none")
+      .hasFiles("src/test/java/com/jhipster/test/wire/cassandra/infrastructure/secondary/CassandraJSR310DateConvertersTest.java")
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        // language=yaml
+        """
+        spring:
+          cassandra:
+            contact-points: ${TEST_CASSANDRA_CONTACT_POINT}
+            keyspace-name: ${TEST_CASSANDRA_KEYSPACE}
+            local-datacenter: ${TEST_CASSANDRA_DC}
+            port: ${TEST_CASSANDRA_PORT}
+        """
+      )
       .and()
       .hasFile("src/test/resources/META-INF/spring.factories")
       .containing("org.springframework.context.ApplicationListener=com.jhipster.test.TestCassandraManager")

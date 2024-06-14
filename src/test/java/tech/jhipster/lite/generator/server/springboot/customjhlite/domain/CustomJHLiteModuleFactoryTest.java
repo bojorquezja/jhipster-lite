@@ -16,8 +16,7 @@ class CustomJHLiteModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .projectBaseName("myapp")
       .put("serverPort", 9000)
@@ -27,12 +26,23 @@ class CustomJHLiteModuleFactoryTest {
 
     //@formatter:off
     assertThatModuleWithFiles(module, pomFile(), mainAppFile())
+      .hasExecutableFiles("tests-ci/generate.sh", "tests-ci/start.sh", "tests-ci/stop.sh")
+      .hasFile("tests-ci/generate.sh")
+        .containing("http://localhost:9000")
+        .and()
+      .hasFile("tests-ci/start.sh")
+        .containing("9000")
+        .and()
+      .hasFile("tests-ci/modulePayload.json")
+        .containing("""
+          "packageName": "com.jhipster.test.APP_NAME",
+        """)
+        .and()
       .hasFile("pom.xml")
-        .containing("<artifactId>cucumber-junit</artifactId>")
+        .containing("<artifactId>cucumber-junit-platform-engine</artifactId>")
         .containing("<artifactId>cucumber-java</artifactId>")
         .containing("<artifactId>cucumber-spring</artifactId>")
-        .containing("<artifactId>junit-vintage-engine</artifactId>")
-        .containing("<artifactId>testng</artifactId>")
+        .containing("<artifactId>junit-platform-suite</artifactId>")
         .containing(
           """
               <dependency>
@@ -48,24 +58,36 @@ class CustomJHLiteModuleFactoryTest {
                 <groupId>tech.jhipster.lite</groupId>
                 <artifactId>jhlite</artifactId>
                 <version>${jhlite.version}</version>
+                <type>test-jar</type>
                 <classifier>tests</classifier>
                 <scope>test</scope>
-                <type>test-jar</type>
               </dependency>
           """
         )
         .and()
-      .hasFile("src/main/resources/config/application.properties")
-        .containing("server.port=9000")
-        .containing("application.exception.package=org.,java.,net.,jakarta.,com.,io.,de.,tech.jhipster.lite,com.jhipster.test")
-        .containing("spring.jackson.default-property-inclusion=non_null")
-        .containing("jhlite-hidden-resources.tags=banner")
-        .containing("jhlite-hidden-resources.slugs=custom-jhlite")
+      .hasFile("src/main/resources/config/application.yml")
+        .containing(
+          """
+          jhlite-hidden-resources:
+            # Disable the modules and its dependencies by slugs
+            slugs: custom-jhlite
+          server:
+            port: 9000
+          spring:
+            jackson:
+              default-property-inclusion: non_null
+          """
+        )
         .and()
-      .hasFile("src/test/resources/config/application.properties")
-        .containing("server.port=0")
-        .containing("application.exception.package=org.,java.,net.,jakarta.,com.,io.,de.,tech.jhipster.lite,com.jhipster.test")
-        .containing("spring.main.allow-bean-definition-overriding=true")
+      .hasFile("src/test/resources/config/application-test.yml")
+        .containing(
+          """
+          server:
+            port: 0
+          spring:
+            main:
+              allow-bean-definition-overriding: true
+          """)
         .and()
       .hasFile("src/main/java/com/jhipster/test/MyappApp.java")
         .containing("import tech.jhipster.lite.JHLiteApp;")
@@ -78,12 +100,13 @@ class CustomJHLiteModuleFactoryTest {
         "src/test/java/tech/jhipster/test/security/infrastructure/primary/CorsFilterConfigurationIT.java"
       )
       .hasFile("src/test/java/com/jhipster/test/cucumber/CucumberTest.java")
-        .containing("glue = { \"com.jhipster.test\", \"tech.jhipster.lite.module.infrastructure.primary\" },")
+        .containing("key = GLUE_PROPERTY_NAME, value = \"com.jhipster.test, tech.jhipster.lite.module.infrastructure.primary\"")
         .and()
       .hasFile("src/test/java/com/jhipster/test/cucumber/CucumberConfiguration.java")
         .containing("import com.jhipster.test.MyappApp;")
         .and()
-      .hasFiles("src/test/java/com/jhipster/test/cucumber/CucumberRestTemplate.java")
+      .hasPrefixedFiles("src/main/java/com/jhipster/test/shared/slug", "package-info.java", "domain/MyappFeatureSlug.java", "domain/MyappModuleSlug.java")
+      .hasFiles("src/test/java/com/jhipster/test/cucumber/rest/CucumberRestTemplate.java")
       .hasFiles("src/test/features/.gitkeep");
     //@formatter:on
   }

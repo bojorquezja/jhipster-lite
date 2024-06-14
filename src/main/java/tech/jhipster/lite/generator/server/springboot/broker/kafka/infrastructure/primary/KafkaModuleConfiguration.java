@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.server.springboot.broker.kafka.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,10 +20,11 @@ class KafkaModuleConfiguration {
 
   @Bean
   JHipsterModuleResource kafkaResourceInit(KafkaApplicationService kafkaApplicationService) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SPRING_BOOT_KAFKA)
-      .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().build())
+      .propertiesDefinition(
+        JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().addSpringConfigurationFormat().build()
+      )
       .apiDoc(TAG, "Add Kafka dependencies, with testcontainers")
       .organization(JHipsterModuleOrganization.builder().addDependency(SPRING_BOOT).build())
       .tags(SERVER, SPRING, SPRING_BOOT_TAG, BROKER)
@@ -31,21 +32,21 @@ class KafkaModuleConfiguration {
   }
 
   @Bean
-  JHipsterModuleResource kafkaResourceDummyProducerConsumer(KafkaApplicationService kafkaApplicationService) {
-    return JHipsterModuleResource
-      .builder()
-      .slug(SPRING_BOOT_KAFKA_DUMMY_PRODUCER_CONSUMER)
-      .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().build())
-      .apiDoc(TAG, "Add dummy Kafka producer and consumer")
+  JHipsterModuleResource kafkaResourceSampleProducerConsumer(KafkaApplicationService kafkaApplicationService) {
+    return JHipsterModuleResource.builder()
+      .slug(SPRING_BOOT_KAFKA_SAMPLE_PRODUCER_CONSUMER)
+      .propertiesDefinition(
+        JHipsterModulePropertiesDefinition.builder().addBasePackage().addIndentation().addSpringConfigurationFormat().build()
+      )
+      .apiDoc(TAG, "Add sample Kafka producer and consumer")
       .organization(kafkaDependency())
       .tags(SERVER, SPRING, SPRING_BOOT_TAG, BROKER)
-      .factory(kafkaApplicationService::addDummyProducerConsumer);
+      .factory(kafkaApplicationService::addSampleProducerConsumer);
   }
 
   @Bean
   JHipsterModuleResource kafkaResourceAkhq(KafkaApplicationService kafkaApplicationService) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(SPRING_BOOT_KAFKA_AKHQ)
       .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addIndentation().build())
       .apiDoc(TAG, "Add AKHQ")

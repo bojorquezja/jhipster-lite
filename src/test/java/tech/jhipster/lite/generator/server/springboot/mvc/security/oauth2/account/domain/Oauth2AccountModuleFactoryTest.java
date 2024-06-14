@@ -16,8 +16,7 @@ class Oauth2AccountModuleFactoryTest {
 
   @Test
   void shouldCreateOAuth2AccountModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .projectBaseName("myapp")
       .build();
@@ -37,11 +36,17 @@ class Oauth2AccountModuleFactoryTest {
       )
       .hasFile("src/main/java/com/jhipster/test/account/package-info.java")
       .and()
-      .hasPrefixedFiles("src/main/java/com/jhipster/test/useridentity/domain", "Email.java", "Firstname.java", "Lastname.java", "Name.java")
-      .hasFile("src/main/java/com/jhipster/test/useridentity/package-info.java")
+      .hasPrefixedFiles(
+        "src/main/java/com/jhipster/test/shared/useridentity/domain",
+        "Email.java",
+        "Firstname.java",
+        "Lastname.java",
+        "Name.java"
+      )
+      .hasFile("src/main/java/com/jhipster/test/shared/useridentity/package-info.java")
       .and()
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/useridentity/domain",
+        "src/test/java/com/jhipster/test/shared/useridentity/domain",
         "EmailTest.java",
         "FirstnameTest.java",
         "LastnameTest.java",
@@ -53,7 +58,7 @@ class Oauth2AccountModuleFactoryTest {
       .hasPrefixedFiles(
         "src/test/java/com/jhipster/test/account/infrastructure/primary",
         "RestAccountTest.java",
-        "AccountsResourceIntTest.java",
+        "AccountsResourceIT.java",
         "AccountsResourceTest.java"
       )
       .hasFile("src/test/java/com/jhipster/test/account/infrastructure/secondary/OAuth2AuthenticationReaderTest.java")

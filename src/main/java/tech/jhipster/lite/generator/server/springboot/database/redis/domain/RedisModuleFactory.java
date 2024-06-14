@@ -2,7 +2,6 @@ package tech.jhipster.lite.generator.server.springboot.database.redis.domain;
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.Assert;
 import tech.jhipster.lite.module.domain.JHipsterModule;
 import tech.jhipster.lite.module.domain.LogLevel;
 import tech.jhipster.lite.module.domain.docker.DockerImages;
@@ -10,13 +9,13 @@ import tech.jhipster.lite.module.domain.file.JHipsterSource;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
 import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
 import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class RedisModuleFactory {
 
   private static final JHipsterSource SOURCE = from("server/springboot/database/redis");
 
-  private static final String REDIS_SECONDARY = "technical/infrastructure/secondary/redis";
-  private static final String DOCKER_COMPOSE_COMMAND = "docker compose -f src/main/docker/redis.yml up -d";
+  private static final String REDIS_SECONDARY = "wire/redis/infrastructure/secondary";
   private static final String REFLECTIONS_GROUP = "org.reflections";
 
   private final DockerImages dockerImages;
@@ -34,7 +33,9 @@ public class RedisModuleFactory {
     //@formatter:off
     return moduleBuilder(properties)
       .documentation(documentationTitle("Redis"), SOURCE.template("redis.md"))
-      .startupCommand(startupCommand())
+      .startupCommands()
+        .dockerCompose("src/main/docker/redis.yml")
+        .and()
       .context()
         .put("redisDockerImage", dockerImages.get("redis").fullName())
         .and()
@@ -56,7 +57,7 @@ public class RedisModuleFactory {
         .add(SOURCE.template("TestRedisManager.java"), toSrcTestJava().append(packagePath).append("TestRedisManager.java"))
         .and()
       .springMainProperties()
-        .set(propertyKey("spring.data.redis.database"), propertyValue("0"))
+        .set(propertyKey("spring.data.redis.database"), propertyValue(0))
         .set(propertyKey("spring.data.redis.url"), propertyValue("redis://localhost:6379"))
         .and()
       .springTestProperties()
@@ -73,10 +74,6 @@ public class RedisModuleFactory {
       .springTestLogger("org.testcontainers", LogLevel.WARN)
       .build();
     //@formatter:on
-  }
-
-  private String startupCommand() {
-    return DOCKER_COMPOSE_COMMAND;
   }
 
   private JavaDependency testContainerDependency() {

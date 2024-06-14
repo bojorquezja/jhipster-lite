@@ -7,7 +7,6 @@
 [![JHipster Lite Docker Hub][jhipster-lite-docker-hub]][jhipster-lite-docker-hub-url]
 
 [![Build Status][github-actions-jhlite-image]][github-actions-url]
-[![Coverage Status][codecov-image]][codecov-url]
 [![sonarcloud-coverage][sonarcloud-coverage]][sonarcloud-url]
 
 [![sonarcloud-quality-gate][sonarcloud-quality-gate]][sonarcloud-url]
@@ -18,16 +17,37 @@
 [![sonarcloud-security][sonarcloud-security]][sonarcloud-url]
 [![sonarcloud-code-smells][sonarcloud-code-smells]][sonarcloud-url]
 
+[![Revved up by Develocity][develocity-badge]][develocity-url]
+
 ## Description
 
 [JHipster][jhipster-url] is a development platform to quickly generate, develop & deploy modern web applications & microservice architectures.
 
-**JHipster Lite** will help you to start your project, by generating step by step only what you need.
+**JHipster Lite** will help you to start your project by generating step by step only what you need.
 
 - The generated code uses [Hexagonal Architecture](./documentation/hexagonal-architecture.md)
 - The technical code is separated from your business code
 - You will only generate the code you want, no additional unused code
 - The best quality as possible: 💯% coverage, 0 code smell, no duplication 😎
+
+This is a [sample application](https://github.com/jhipster/jhipster-lite-sample-app) created with JHipster Lite.
+
+## Quick Start
+
+You need to clone this project and go into the folder:
+
+```
+git clone https://github.com/jhipster/jhipster-lite
+cd jhipster-lite
+```
+
+Run the project:
+
+```bash
+./mvnw
+```
+
+Then, you can navigate to http://localhost:7471 in your browser.
 
 ## Some videos
 
@@ -45,9 +65,9 @@ The original JHipster and JHLite are **not the same thing**, they are **not gene
 
 ### Java
 
-You need to have Java 17 :
+You need to have Java 21:
 
-- [JDK 17](https://openjdk.java.net/projects/jdk/17/)
+- [JDK 21](https://openjdk.java.net/projects/jdk/21/)
 
 ### Node.js and NPM
 
@@ -55,49 +75,27 @@ You need to have Java 17 :
 
 After installing Node, you should be able to run the following command to install development tools.
 
-```
+```bash
 npm ci
 ```
 
 You will only need to run this command when dependencies change in [package.json](package.json).
 
-```
+```bash
 npm install
 ```
-
-## Quick Start
-
-You need to clone this project:
-
-```
-git clone https://github.com/jhipster/jhipster-lite
-```
-
-Go into the folder:
-
-```
-cd jhipster-lite
-```
-
-Run the project:
-
-```
-./mvnw
-```
-
-Then, you can navigate to http://localhost:7471 in your browser.
 
 ## Test the project
 
 To launch tests:
 
-```
+```bash
 ./mvnw clean test
 ```
 
 To launch tests and integration tests:
 
-```
+```bash
 ./mvnw clean verify
 ```
 
@@ -111,13 +109,13 @@ Docker should be installed and configured on your machine prior to creating the 
 
 To create the image, run the following goal:
 
-```
+```bash
 ./mvnw spring-boot:build-image -Pnative
 ```
 
 Then, you can run the app like any other container:
 
-```
+```bash
 docker run -p 7471:7471 --rm docker.io/library/jhlite:<VERSION>
 ```
 
@@ -130,13 +128,13 @@ NOTE: GraalVM 22.3+ is required.
 
 To create the executable, run the following goal:
 
-```
+```bash
 ./mvnw native:compile -Pnative -DskipTests
 ```
 
 Then, you can run the app as follows:
 
-```
+```bash
 ./target/jhlite
 ```
 
@@ -144,7 +142,7 @@ You can also run your existing tests suite in a native image. This is an efficie
 
 To run your existing tests in a native image, run the following goal:
 
-```
+```bash
 ./mvnw test -PnativeTest
 ```
 
@@ -152,22 +150,21 @@ To run your existing tests in a native image, run the following goal:
 
 We use multiple linters check and lint your code:
 
-- [ESlint](https://eslint.org/) for JavaScript/TypeScript
+- [ESLint](https://eslint.org/) for JavaScript/TypeScript
 - [Prettier](https://github.com/prettier/prettier) for the format
   - [prettier-java](https://github.com/jhipster/prettier-java) for Java
 - [Stylelint](https://stylelint.io/) for style
   - [stylelint-scss](https://github.com/stylelint-scss) for SCSS
-- [pug-lint](https://www.npmjs.com/package/pug-lint) for Pug
 
 To check:
 
-```
+```bash
 npm run lint:ci
 ```
 
 To lint and fix all code:
 
-```
+```bash
 npm run lint
 ```
 
@@ -175,13 +172,13 @@ npm run lint
 
 To launch local Sonar Analysis:
 
-```
+```bash
 docker compose -f src/main/docker/sonar.yml up -d
 ```
 
 Then:
 
-```
+```bash
 ./mvnw clean verify sonar:sonar
 ```
 
@@ -191,35 +188,53 @@ So you can check the result at http://localhost:9001
 
 You can run the project using Maven, as `spring-boot:run` is the default target:
 
-```
+```bash
 ./mvnw
 ```
 
 Or, first, you can package as jar:
 
-```
+```bash
 ./mvnw package
 ```
 
 Then, run:
 
-```
+```bash
 java -jar target/*.jar
 ```
 
 So you can navigate to http://localhost:7471 in your browser.
 
+These following profiles are available, and you can use it to only display the frameworks you want:
+
+- angular
+- react
+- vue
+
+For example, you can run:
+
+```bash
+./mvnw -Dspring-boot.run.profiles=vue
+```
+
+or
+
+```bash
+java -jar target/*.jar --spring.profiles.active=vue
+```
+
 ## Docker/Podman Quickstart
 
 To start a local instance of JHipster Lite, go to your desired application folder and run:
 
-```
+```bash
 docker run --rm --pull=always -p 7471:7471 -v $(pwd):/tmp/jhlite:Z -it jhipster/jhipster-lite:latest
 ```
 
 Or with podman:
 
-```
+```bash
 podman run --rm --pull=always -p 7471:7471 -v $(pwd):/tmp/jhlite:Z -u root -it jhipster/jhipster-lite:latest
 ```
 
@@ -229,13 +244,13 @@ Then, go to [http://localhost:7471](http://localhost:7471)
 
 You need to run the project first. Then, you can run the end-to-end tests:
 
-```
+```bash
 npm run e2e
 ```
 
 Or in headless mode:
 
-```
+```bash
 npm run e2e:headless
 ```
 
@@ -245,46 +260,13 @@ Once started, go to http://localhost:7471, select your option and generate the c
 
 ## Contributing
 
-We are honoured by any contributions you may have small or large. Please refer to our [contribution guidelines and instructions document](https://github.com/jhipster/jhipster-lite/blob/main/CONTRIBUTING.md) for any information about contributing to the project.
+We are honored by any contributions you may have small or large. Please refer to our [contribution guidelines and instructions document](https://github.com/jhipster/jhipster-lite/blob/main/CONTRIBUTING.md) for any information about contributing to the project.
 
 ## Sponsors
 
 Support this project by becoming a sponsor! [Become a sponsor](https://opencollective.com/generator-jhipster) or [learn more about sponsoring the project](https://www.jhipster.tech/sponsors/).
 
 **Thank you to our sponsors!**
-
-### Platinum Sponsors
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-        <a href="https://developer.okta.com/signup?utm_source=JHipster&utm_medium=logo&utm_campaign=Platinum-Sponsor" target="_blank">
-          <img width="425em" src="https://www.jhipster.tech/images/open-collective/okta.png">
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-### Gold Sponsors
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-        <a href="https://dev.entando.org/jhipster" target="_blank">
-          <img width="200em" src="https://www.jhipster.tech/images/open-collective/entandoe.png">
-        </a>
-      </td>
-      <td align="center" valign="middle">
-        <a href="https://www.datastax.com/" target="_blank">
-          <img width="200em" src="https://www.jhipster.tech/images/open-collective/datastax.png">
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
 
 ### Bronze sponsors
 
@@ -305,8 +287,6 @@ Support this project by becoming a sponsor! [Become a sponsor](https://opencolle
 [jhipster-lite-docker-hub-url]: https://hub.docker.com/r/jhipster/jhipster-lite
 [github-actions-jhlite-image]: https://github.com/jhipster/jhipster-lite/workflows/build/badge.svg
 [github-actions-url]: https://github.com/jhipster/jhipster-lite/actions
-[codecov-image]: https://codecov.io/gh/jhipster/jhipster-lite/branch/main/graph/badge.svg
-[codecov-url]: https://codecov.io/gh/jhipster/jhipster-lite
 [jhipster-image]: https://raw.githubusercontent.com/jhipster/jhipster-artwork/main/logos/lite/JHipster-Lite-neon-blue.png
 [jhipster-url]: https://www.jhipster.tech/
 [sonarcloud-url]: https://sonarcloud.io/project/overview?id=jhipster_jhipster-lite
@@ -326,3 +306,5 @@ Support this project by becoming a sponsor! [Become a sponsor](https://opencolle
 [webservices-with-jhlite]: https://youtu.be/mEECPRZjajI
 [jhipster-vs-jhlite]: https://youtu.be/t5GA329FMfU
 [cdamon]: https://www.linkedin.com/in/colin-damon/
+[develocity-badge]: https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A
+[develocity-url]: https://ge.jhipster.tech/scans

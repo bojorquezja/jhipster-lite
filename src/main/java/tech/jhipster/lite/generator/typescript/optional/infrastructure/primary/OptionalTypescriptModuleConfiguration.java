@@ -1,6 +1,6 @@
 package tech.jhipster.lite.generator.typescript.optional.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.*;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,8 +13,7 @@ class OptionalTypescriptModuleConfiguration {
 
   @Bean
   JHipsterModuleResource optionalTypescriptModule(OptionalTypescriptApplicationService optionalTypescriptApplicationService) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(OPTIONAL_TYPESCRIPT)
       .withoutProperties()
       .apiDoc("Typescript", "Add Optional class domain to project")

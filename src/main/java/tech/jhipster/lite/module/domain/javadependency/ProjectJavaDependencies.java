@@ -2,8 +2,9 @@ package tech.jhipster.lite.module.domain.javadependency;
 
 import java.util.Optional;
 import tech.jhipster.lite.module.domain.javabuild.VersionSlug;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
-public class ProjectJavaDependencies {
+public final class ProjectJavaDependencies {
 
   public static final ProjectJavaDependencies EMPTY = builder().versions(null).dependenciesManagements(null).dependencies(null);
 
@@ -61,7 +62,16 @@ public class ProjectJavaDependencies {
     return dependencies;
   }
 
-  public static class ProjectJavaDependenciesBuilder
+  public ProjectJavaDependencies merge(ProjectJavaDependencies other) {
+    Assert.notNull("other", other);
+
+    return builder()
+      .versions(versions.merge(other.versions()))
+      .dependenciesManagements(dependenciesManagement.merge(other.dependenciesManagement))
+      .dependencies(dependencies.merge(other.dependencies));
+  }
+
+  private static final class ProjectJavaDependenciesBuilder
     implements
       ProjectJavaDependenciesVersionsBuilder,
       ProjectJavaDependenciesDependenciesManagementBuilder,

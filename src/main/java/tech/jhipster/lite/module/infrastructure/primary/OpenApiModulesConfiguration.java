@@ -18,7 +18,6 @@ import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportRuntimeHints;
-import tech.jhipster.lite.common.domain.Enums;
 import tech.jhipster.lite.module.domain.JHipsterModuleSlug;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyDefaultValue;
 import tech.jhipster.lite.module.domain.properties.JHipsterPropertyDescription;
@@ -28,6 +27,7 @@ import tech.jhipster.lite.module.domain.resource.JHipsterModuleApiDoc;
 import tech.jhipster.lite.module.domain.resource.JHipsterModulePropertyDefinition;
 import tech.jhipster.lite.module.domain.resource.JHipsterModuleResource;
 import tech.jhipster.lite.module.domain.resource.JHipsterModulesResources;
+import tech.jhipster.lite.shared.enumeration.domain.Enums;
 
 @ImportRuntimeHints(NativeHints.class)
 @Configuration
@@ -123,17 +123,15 @@ class OpenApiModulesConfiguration {
   }
 
   private List<String> buildRequirements(JHipsterModuleResource module) {
-    return Stream
-      .concat(
-        Stream.of("projectFolder"),
-        module
-          .propertiesDefinition()
-          .stream()
-          .filter(JHipsterModulePropertyDefinition::isMandatory)
-          .map(JHipsterModulePropertyDefinition::key)
-          .map(JHipsterPropertyKey::get)
-      )
-      .toList();
+    return Stream.concat(
+      Stream.of("projectFolder"),
+      module
+        .propertiesDefinition()
+        .stream()
+        .filter(JHipsterModulePropertyDefinition::isMandatory)
+        .map(JHipsterModulePropertyDefinition::key)
+        .map(JHipsterPropertyKey::get)
+    ).toList();
   }
 
   @SuppressWarnings("rawtypes")
@@ -165,7 +163,7 @@ class OpenApiModulesConfiguration {
   }
 
   private PathItem modulePropertiesDefinition(JHipsterModuleApiDoc apiDoc, JHipsterModuleSlug slug) {
-    Operation getOpetation = new Operation()
+    Operation getOperation = new Operation()
       .operationId(slug.get() + "-properties-definition")
       .summary("Get " + slug.get() + " properties definitions")
       .tags(apiDoc.group().list())
@@ -179,7 +177,7 @@ class OpenApiModulesConfiguration {
           )
       );
 
-    return new PathItem().get(getOpetation);
+    return new PathItem().get(getOperation);
   }
 
   private Map<String, PathItem> modulesApplications(JHipsterModulesResources modules) {

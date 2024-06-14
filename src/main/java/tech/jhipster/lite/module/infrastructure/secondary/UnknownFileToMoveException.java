@@ -1,6 +1,6 @@
 package tech.jhipster.lite.module.infrastructure.secondary;
 
-import tech.jhipster.lite.error.domain.GeneratorException;
+import tech.jhipster.lite.shared.error.domain.GeneratorException;
 
 class UnknownFileToMoveException extends GeneratorException {
 
@@ -9,6 +9,6 @@ class UnknownFileToMoveException extends GeneratorException {
   }
 
   private static String buildMessage(String filename) {
-    return new StringBuilder().append("Can't move ").append(filename).append(", can't find it in project").toString();
+    return "Can't move %s, can't find it in project".formatted(filename);
   }
 }

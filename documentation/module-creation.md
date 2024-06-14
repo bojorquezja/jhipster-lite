@@ -1,11 +1,11 @@
 # Creating a JHLite module
 
-So you want to create a JHLite module? Great!  
+So, you want to create a JHLite module? Great!
 
-For that you'll need to provide 2 main parts:
+For that, you'll need to provide two main parts:
 
-* `JHipsterModuleResource`: describe the module organization, it is used to generate the APIs;
-* `JHipsterModule`: describe the changes done by the module.
+- `JHipsterModuleResource`: describe the module organization, it is used to generate the APIs;
+- `JHipsterModule`: describe the changes done by the module.
 
 You can start by the element you prefer but to create a `JHipsterModuleResource` you'll need to be able to build a `JHipsterModule`.
 
@@ -13,7 +13,7 @@ You can start by the element you prefer but to create a `JHipsterModuleResource`
 
 In fact, you don't just need to create one `JHipsterModule`, you'll need a factory able to create them since each instance depends on the properties chosen by the users.
 
-So, as this is the business of JHLite you probably want to create a `tech.jhipster.lite.generator.my_module.domain` package. And you can start with a simple test: 
+So, as this is the business of JHLite you probably want to create a `tech.jhipster.lite.generator.my_module.domain` package. And you can start with a simple test:
 
 ```java
 import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
@@ -27,30 +27,30 @@ import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
 
 @UnitTest
 class MyModuleFactoryTest {
+
   private static final MyModuleFactory factory = new MyModuleFactory();
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .build();
 
     JHipsterModule module = factory.buildModule(properties);
 
-    assertThatModule(module)
-      .hasPrefixedFiles("src/main/java/com/jhipster/test/my_package", "Dummy.java");
+    assertThatModule(module).hasPrefixedFiles("src/main/java/com/jhipster/test/my_package", "Dummy.java");
   }
 }
+
 ```
 
-A few things to note here: 
+A few things to note here:
 
-* We are expecting to have a `buildModule(...)` method in `MyModuleFactory`;
-* The `JHipsterModulesAssertions.assertThatModule(...)` will really apply the module to a project and give you a fluent API to ensure some operations;
-* Even if the feedback loops are not perfect on that they should be short enough to allow a decent TDD implementation of the factory (on eclipse with [infinitest](https://infinitest.github.io/) feedbacks are under a second).
+- We are expecting to have a `buildModule(...)` method in `MyModuleFactory`;
+- The `JHipsterModulesAssertions.assertThatModule(...)` will really apply the module to a project and give you a fluent API to ensure some operations;
+- Even if the feedback loops are not perfect on that, they should be short enough to allow a decent TDD implementation of the factory (on eclipse with [infinitest](https://infinitest.github.io/) feedbacks are under a second).
 
-So, now that we have a first test we can do a simple implementation: 
+So, now that we have a first test, we can do a simple implementation:
 
 ```java
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
@@ -69,11 +69,12 @@ public class MyModuleFactory {
     //@formatter:on
   }
 }
+
 ```
 
 This implementation will take a file from `src/main/resources/generator/my-module` and put it in the generated project.
 
-The file is a template named `Dummy.java.mustache` and can contains some mustache placeholders: 
+The file is a template named `Dummy.java.mustache` and can contain some mustache placeholders:
 
 ```java
 package {{packageName}}.my_package;
@@ -86,30 +87,32 @@ public class Dummy {
 
 Those placeholders will be replaced by properties values during module application.
 
-And this is it for this part of the documentation... Of course you can do a lot more than that in the `JHipsterModule` but the goal of this documentation is not to go deep in this usage! You have a lot of running example and you can always ask for help, we'll be really happy to help you provide your implementations!
+And this is it for this part of the documentation... Of course, you can do a lot more than that in the `JHipsterModule` but the goal of this documentation is not to go deep in this usage! You have a lot of running examples and you can always ask for help, we'll be really happy to help you provide your implementations!
 
 ## Add relevant dependencies required for the new module in the Version files
 
 ### Dependency resolution
 
-* In the `src/main/resources/generator/dependencies` folder, different files are maintained to handle the dependencies for different tools/frameworks such as docker, maven, angular etc.
-* You can add the dependencies required for your new module in the respective files in the `dependencies` folder.
-* The dependency versions are then automatically managed by the dependabot.
+- In the `src/main/resources/generator/dependencies` folder, different files are maintained to handle the dependencies for different tools/frameworks such as docker, maven, angular etc.
+- You can add the dependencies required for your new module in the respective files in the `dependencies` folder.
+- The dependency versions are then automatically managed by the dependabot.
 
 ### Overview of Version files/folders in this dependencies folder
 
-* **Docker versions**
-  * You can add the docker images required for your module in the `src/main/resources/generator/dependencies/Dockerfile`
-  * These dependencies are resolved using the [FileSystemDockerImagesReader](https://github.com/jhipster/jhipster-lite/blob/main/src/main/java/tech/jhipster/lite/module/infrastructure/secondary/docker/FileSystemDockerImagesReader.java), an implementation of the `DockerImagesReader` bean to read from a local file.
+- **Docker versions**
 
-* **Java versions**
-  * You can add the java dependencies required for your module in the `src/main/resources/generator/dependencies/pom.xml`
-  * These dependencies are resolved using [FileSystemJavaDependenciesReader](https://github.com/jhipster/jhipster-lite/blob/main/src/main/java/tech/jhipster/lite/module/infrastructure/secondary/javadependency/FileSystemJavaDependenciesReader.java), an implementation of the `JavaDependenciesReader` bean to read from a local file.
+  - You can add the docker images required for your module in the `src/main/resources/generator/dependencies/Dockerfile`
+  - These dependencies are resolved using the [FileSystemDockerImagesReader](https://github.com/jhipster/jhipster-lite/blob/main/src/main/java/tech/jhipster/lite/module/infrastructure/secondary/docker/FileSystemDockerImagesReader.java), an implementation of the `DockerImagesReader` bean to read from a local file.
 
-* **NPM versions**
-  * Common npm dependencies can be added in the `src/main/resources/generator/dependencies/common/package.json`
-  * Framework specific npm dependencies can be added in the `package.json` of the respective framework folders. For eg: `src/main/resources/generator/dependencies/react/package.json`
-  * These dependencies are resolved using [FileSystemNpmVersionReader](https://github.com/jhipster/jhipster-lite/blob/main/src/main/java/tech/jhipster/lite/module/infrastructure/secondary/npm/FileSystemNpmVersionReader.java), an implementation of the `NpmVersionsReader` bean to read from a local file.
+- **Java versions**
+
+  - You can add the java dependencies required for your module in the `src/main/resources/generator/dependencies/pom.xml`
+  - These dependencies are resolved using [FileSystemJavaDependenciesReader](https://github.com/jhipster/jhipster-lite/blob/main/src/main/java/tech/jhipster/lite/module/infrastructure/secondary/javadependency/FileSystemJavaDependenciesReader.java), an implementation of the `JavaDependenciesReader` bean to read from a local file.
+
+- **NPM versions**
+  - Common npm dependencies can be added in the `src/main/resources/generator/dependencies/common/package.json`
+  - Framework specific npm dependencies can be added in the `package.json` of the respective framework folders. For e.g.: `src/main/resources/generator/dependencies/react/package.json`
+  - These dependencies are resolved using [FileSystemNpmVersionReader](https://github.com/jhipster/jhipster-lite/blob/main/src/main/java/tech/jhipster/lite/module/infrastructure/secondary/npm/FileSystemNpmVersionReader.java), an implementation of the `NpmVersionsReader` bean to read from a local file.
 
 ## Creating JHipsterModuleResource
 
@@ -138,11 +141,8 @@ To be used by JHLite, the `JHipsterModuleResource` needs to be a Spring bean so,
 class MyModuleModuleConfiguration {
 
   @Bean
-  JHipsterModuleResource myModule(
-    MyModuleApplicationService myModules
-  ) {
-    return JHipsterModuleResource
-      .builder()
+  JHipsterModuleResource myModule(MyModuleApplicationService myModules) {
+    return JHipsterModuleResource.builder()
       .slug(JHLiteModuleSlug.MY_MODULE)
       .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().build())
       .apiDoc("Group", "This is my module")
@@ -151,9 +151,10 @@ class MyModuleModuleConfiguration {
       .factory(myModules::buildModule);
   }
 }
+
 ```
 
-In fact, you don't really have choices here, the `JHipsterModuleResource.builder()` is fluent and will only let you go to the next possible step. 
+In fact, you don't really have choices here, the `JHipsterModuleResource.builder()` is fluent and will only let you go to the next possible step.
 The most confusing one may be the last one `.factory(myModules::buildModule)` which is, in fact, a method called to build the module.
 
 For this to work, we'll need to add a simple orchestration class in `tech.jhipster.lite.generator.my_module.application`:
@@ -175,11 +176,11 @@ public class MyModuleApplicationService {
 
 ```
 
-In your `JHipsterModuleResource` you can define additional properties and an organization to display your module in the landscape (replacing `.standalone()`). Here again, you have a lot of example to rely on.
+In your `JHipsterModuleResource` you can define additional properties and an organization to display your module in the landscape (replacing `.standalone()`). Here again, you have a lot of examples to rely on.
 
 ## Applying module in CI
 
-Now that you are confident about your module action you can add it to the JHLite ci by adding it in the `fullapp` application in [generate.sh](../tests-ci/generate.sh) so it will be compiled and analyzed by SonarQube. You can also create a brand new app if needed.
+Now that you are confident about your module's action you can add it to the JHLite ci by adding it in the `fullapp` application in [generate.sh](../tests-ci/generate.sh), so it will be compiled and analyzed by SonarQube. You can also create a brand new app if needed.
 
 If your app launches a docker container, you must edit [start_docker_compose.sh](../tests-ci/start_docker_compose.sh).
 

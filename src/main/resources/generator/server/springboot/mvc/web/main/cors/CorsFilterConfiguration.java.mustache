@@ -1,4 +1,4 @@
-package {{packageName}}.security.infrastructure.primary;
+package {{packageName}}.wire.security.infrastructure.primary;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,9 +10,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 @Configuration
-public class CorsFilterConfiguration {
+class CorsFilterConfiguration {
 
-  private final Logger log = LoggerFactory.getLogger(CorsFilterConfiguration.class);
+  private static final Logger log = LoggerFactory.getLogger(CorsFilterConfiguration.class);
 
   private final CorsConfiguration corsConfiguration;
 

@@ -8,13 +8,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import tech.jhipster.lite.common.domain.ExcludeFromGeneratedCodeCoverage;
 import tech.jhipster.lite.module.domain.JHipsterFeatureSlug;
 import tech.jhipster.lite.module.domain.JHipsterModuleSlug;
 import tech.jhipster.lite.module.domain.JHipsterSlug;
 import tech.jhipster.lite.module.domain.resource.JHipsterModulesResources;
 
-public class JHipsterLandscape {
+public final class JHipsterLandscape {
 
   private final JHipsterLandscapeLevels levels;
 
@@ -53,26 +52,24 @@ public class JHipsterLandscape {
   }
 
   private List<JHipsterLandscapeLevel> nestedDependenciesFreeLevels() {
-    return levels.stream().map(toLevelsWithoutNestedDepdendencies()).toList();
+    return levels.stream().map(toLevelsWithoutNestedDependencies()).toList();
   }
 
-  private Function<JHipsterLandscapeLevel, JHipsterLandscapeLevel> toLevelsWithoutNestedDepdendencies() {
+  private Function<JHipsterLandscapeLevel, JHipsterLandscapeLevel> toLevelsWithoutNestedDependencies() {
     return level -> new JHipsterLandscapeLevel(level.elements().stream().map(this::toElementWithoutNestedDependencies).toList());
   }
 
-  @ExcludeFromGeneratedCodeCoverage(reason = "Jacoco think there is a missing case")
   private JHipsterLandscapeElement toElementWithoutNestedDependencies(JHipsterLandscapeElement element) {
-    return switch (element.type()) {
-      case MODULE -> moduleWithoutNestedDependencies((JHipsterLandscapeModule) element);
-      case FEATURE -> element;
+    return switch (element) {
+      case JHipsterLandscapeModule module -> moduleWithoutNestedDependencies(module);
+      case JHipsterLandscapeFeature feature -> feature;
     };
   }
 
   private JHipsterLandscapeModule moduleWithoutNestedDependencies(JHipsterLandscapeModule module) {
     List<JHipsterLandscapeDependency> knownDependencies = knownDependencies(module);
 
-    return JHipsterLandscapeModule
-      .builder()
+    return JHipsterLandscapeModule.builder()
       .module(module.slug())
       .operation(module.operation())
       .propertiesDefinition(module.propertiesDefinition())
@@ -131,18 +128,17 @@ public class JHipsterLandscape {
   }
 
   private Function<JHipsterLandscapeLevel, JHipsterLandscapeLevel> toSortedLevel() {
-    Comparator<JHipsterLandscapeElement> levelComparator = Comparator
-      .comparing(this::linksCount)
-      .thenComparing(element -> element.slug().get());
+    Comparator<JHipsterLandscapeElement> levelComparator = Comparator.comparing(this::linksCount).thenComparing(
+      element -> element.slug().get()
+    );
 
     return level -> new JHipsterLandscapeLevel(level.elements().stream().sorted(levelComparator).toList());
   }
 
-  @ExcludeFromGeneratedCodeCoverage(reason = "Jacoco think there is a missing case")
   private long linksCount(JHipsterLandscapeElement element) {
-    return switch (element.type()) {
-      case FEATURE -> featureLinksCount((JHipsterLandscapeFeature) element);
-      case MODULE -> moduleLinksCount((JHipsterLandscapeModule) element);
+    return switch (element) {
+      case JHipsterLandscapeFeature feature -> featureLinksCount(feature);
+      case JHipsterLandscapeModule module -> moduleLinksCount(module);
     };
   }
 

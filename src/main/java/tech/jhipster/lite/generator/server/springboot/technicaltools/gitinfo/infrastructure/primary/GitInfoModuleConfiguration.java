@@ -1,6 +1,7 @@
 package tech.jhipster.lite.generator.server.springboot.technicaltools.gitinfo.infrastructure.primary;
 
-import static tech.jhipster.lite.generator.JHLiteModuleSlug.*;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.GIT_INFORMATION;
+import static tech.jhipster.lite.generator.slug.domain.JHLiteModuleSlug.SPRING_BOOT_ACTUATOR;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,10 +15,11 @@ class GitInfoModuleConfiguration {
 
   @Bean
   JHipsterModuleResource gitInfoModule(GitInfoApplicationService gitInfoModule) {
-    return JHipsterModuleResource
-      .builder()
+    return JHipsterModuleResource.builder()
       .slug(GIT_INFORMATION)
-      .propertiesDefinition(JHipsterModulePropertiesDefinition.builder().addBasePackage().addProjectBaseName().build())
+      .propertiesDefinition(
+        JHipsterModulePropertiesDefinition.builder().addBasePackage().addProjectBaseName().addSpringConfigurationFormat().build()
+      )
       .apiDoc("Git Information", "Injecting Git Information into Spring")
       .organization(JHipsterModuleOrganization.builder().addDependency(SPRING_BOOT_ACTUATOR).build())
       .tags("server", "spring", "git", "git-information")

@@ -1,4 +1,4 @@
-package {{packageName}}.authentication.infrastructure.primary;
+package {{packageName}}.shared.authentication.infrastructure.primary;
 
 import org.springframework.web.context.request.AbstractRequestAttributes;
 
@@ -7,10 +7,6 @@ public class FakeRequestAttributes extends AbstractRequestAttributes {
   @Override
   public void requestCompleted() {
     super.requestCompleted();
-  }
-
-  public FakeRequestAttributes() {
-    super();
   }
 
   @Override

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import tech.jhipster.lite.JsonHelper;
 import tech.jhipster.lite.UnitTest;
 import tech.jhipster.lite.module.domain.JHipsterModulesFixture;
-import tech.jhipster.lite.projectfolder.domain.ProjectFolder;
+import tech.jhipster.lite.shared.projectfolder.domain.ProjectFolder;
 
 @UnitTest
 class RestJHipsterModulesToApplyTest {
@@ -25,20 +25,20 @@ class RestJHipsterModulesToApplyTest {
 
   private static String json() {
     return """
-          {
-          "modules": ["maven-java", "init"],
-          "properties":
-            {
-              "projectFolder": "/dummy",
-              "parameters": {
-                "projectName": "Chips Project",
-                "baseName": "chips",
-                "packageName": "tech.jhipster.chips",
-                "serverPort": 8080
-              }
-            }
+      {
+      "modules": ["maven-java", "init"],
+      "properties":
+        {
+          "projectFolder": "/dummy",
+          "parameters": {
+            "projectName": "Chips Project",
+            "baseName": "chips",
+            "packageName": "tech.jhipster.chips",
+            "serverPort": 8080
+          }
         }
-        """;
+    }
+    """;
   }
 
   @Test

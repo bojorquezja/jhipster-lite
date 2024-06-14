@@ -16,8 +16,7 @@ class AngularJwtModuleFactoryTest {
 
   @Test
   void shouldBuildModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .projectBaseName("jhipster")
       .build();
 
@@ -48,12 +47,12 @@ class AngularJwtModuleFactoryTest {
       .hasFile("src/main/webapp/app/app.route.ts")
       .containing(
         """
-              {
-                path: '',
-                loadComponent: () => import('./login/login.component'),
-                title: 'Login',
-              },
-            """
+          {
+            path: '',
+            loadComponent: () => import('./login/login.component'),
+            title: 'Login',
+          },
+        """
       );
   }
 

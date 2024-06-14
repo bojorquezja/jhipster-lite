@@ -31,8 +31,7 @@ class CassandraMigrationModuleFactoryTest {
   void shouldBuildModule() {
     when(dockerImages.get("cassandra")).thenReturn(new DockerImageVersion("cassandra", "4.0.7"));
 
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .build();
 
@@ -63,11 +62,13 @@ class CassandraMigrationModuleFactoryTest {
       )
       .and()
       .hasFile("README.md")
-      .containing("""
+      .containing(
+        """
         ```bash
         docker compose -f src/main/docker/cassandra-migration.yml up -d
         ```
-        """)
+        """
+      )
       .and()
       .hasFile("src/main/docker/cassandra/Cassandra-Migration.Dockerfile")
       .containing("cassandra:4.0.7");

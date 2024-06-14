@@ -1,7 +1,8 @@
 package tech.jhipster.lite.generator.server.springboot.database.postgresql.domain;
 
-import static org.mockito.Mockito.*;
-import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.*;
+import static org.mockito.Mockito.when;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.assertThatModuleWithFiles;
+import static tech.jhipster.lite.module.infrastructure.secondary.JHipsterModulesAssertions.pomFile;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,8 +29,7 @@ class PostgresqlModuleFactoryTest {
 
   @Test
   void shouldCreateModule() {
-    JHipsterModuleProperties properties = JHipsterModulesFixture
-      .propertiesBuilder(TestFileUtils.tmpDirForTest())
+    JHipsterModuleProperties properties = JHipsterModulesFixture.propertiesBuilder(TestFileUtils.tmpDirForTest())
       .basePackage("com.jhipster.test")
       .projectBaseName("myapp")
       .build();
@@ -39,7 +39,7 @@ class PostgresqlModuleFactoryTest {
     JHipsterModule module = factory.buildModule(properties);
 
     assertThatModuleWithFiles(module, pomFile())
-      .hasPrefixedFiles("src/main/java/com/jhipster/test/technical/infrastructure/secondary/postgresql", "DatabaseConfiguration.java")
+      .hasPrefixedFiles("src/main/java/com/jhipster/test/wire/postgresql/infrastructure/secondary", "DatabaseConfiguration.java")
       .hasFile("documentation/postgresql.md")
       .and()
       .hasFile("pom.xml")
@@ -58,36 +58,58 @@ class PostgresqlModuleFactoryTest {
       .containing("<artifactId>hibernate-core</artifactId>")
       .containing("<groupId>org.testcontainers</groupId>")
       .and()
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("spring.datasource.url=jdbc:postgresql://localhost:5432/myapp")
-      .containing("spring.datasource.username=myapp")
-      .containing("spring.datasource.password=")
-      .containing("spring.datasource.driver-class-name=org.postgresql.Driver")
-      .containing("spring.datasource.type=com.zaxxer.hikari.HikariDataSource")
-      .containing("spring.datasource.hikari.poolName=Hikari")
-      .containing("spring.datasource.hikari.auto-commit=false")
-      .containing("spring.data.jpa.repositories.bootstrap-mode=deferred")
-      .containing("spring.jpa.hibernate.ddl-auto=none")
-      .containing("spring.jpa.hibernate.naming.implicit-strategy=org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy")
-      .containing("spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy")
-      .containing("spring.jpa.open-in-view=false")
-      .containing("spring.jpa.properties.hibernate.connection.provider_disables_autocommit=true")
-      .containing("spring.jpa.properties.hibernate.generate_statistics=false")
-      .containing("spring.jpa.properties.hibernate.jdbc.batch_size=25")
-      .containing("spring.jpa.properties.hibernate.jdbc.time_zone=UTC")
-      .containing("spring.jpa.properties.hibernate.order_inserts=true")
-      .containing("spring.jpa.properties.hibernate.order_updates=true")
-      .containing("spring.jpa.properties.hibernate.query.fail_on_pagination_over_collection_fetch=true")
-      .containing("spring.jpa.properties.hibernate.query.in_clause_parameter_padding=true")
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        spring:
+          data:
+            jpa:
+              repositories:
+                bootstrap-mode: deferred
+          datasource:
+            driver-class-name: org.postgresql.Driver
+            hikari:
+              auto-commit: false
+              poolName: Hikari
+            password: ''
+            type: com.zaxxer.hikari.HikariDataSource
+            url: jdbc:postgresql://localhost:5432/myapp
+            username: myapp
+          jpa:
+            hibernate:
+              ddl-auto: none
+              naming:
+                implicit-strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+                physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+            open-in-view: false
+            properties:
+              hibernate:
+                connection:
+                  provider_disables_autocommit: true
+                generate_statistics: false
+                jdbc:
+                  batch_size: 25
+                  time_zone: UTC
+                order_inserts: true
+                order_updates: true
+                query:
+                  fail_on_pagination_over_collection_fetch: true
+                  in_clause_parameter_padding: true
+        """
+      )
       .and()
-      .hasFile("src/test/resources/config/application.properties")
-      .containing("spring.datasource.url=jdbc:tc:postgresql")
-      .containing("spring.datasource.username=myapp")
-      .containing("spring.datasource.password=")
-      .containing("spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver")
-      .containing("spring.datasource.hikari.maximum-pool-size=2")
-      .containing("spring.jpa.open-in-view=false")
-      .containing("spring.jpa.properties.hibernate.connection.provider_disables_autocommit=true")
-      .containing("spring.datasource.hikari.auto-commit=false");
+      .hasFile("src/test/resources/config/application-test.yml")
+      .containing(
+        """
+        spring:
+          datasource:
+            driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+            hikari:
+              maximum-pool-size: 2
+            password: ''
+            url: jdbc:tc:postgresql:0.0.0:///myapp?TC_TMPFS=/testtmpfs:rw
+            username: myapp
+        """
+      );
   }
 }

@@ -19,18 +19,25 @@ class EHCacheModulesFactoryTest {
     JHipsterModule module = factory.buildJavaConfigurationModule(properties());
 
     commonEHCacheModuleAsserter(module)
-      .hasFile("src/main/java/com/jhipster/test/technical/infrastructure/secondary/cache/CacheConfiguration.java")
+      .hasFile("src/main/java/com/jhipster/test/wire/cache/infrastructure/secondary/CacheConfiguration.java")
       .containing("JCacheManagerCustomizer")
       .and()
-      .hasFiles("src/main/java/com/jhipster/test/technical/infrastructure/secondary/cache/EhcacheProperties.java")
+      .hasFiles("src/main/java/com/jhipster/test/wire/cache/infrastructure/secondary/EhcacheProperties.java")
       .hasPrefixedFiles(
-        "src/test/java/com/jhipster/test/technical/infrastructure/secondary/cache",
+        "src/test/java/com/jhipster/test/wire/cache/infrastructure/secondary",
         "CacheConfigurationIT.java",
         "CacheConfigurationTest.java"
       )
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("application.cache.ehcache.max-entries=100")
-      .containing("application.cache.ehcache.time-to-live-seconds=3600");
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        application:
+          cache:
+            ehcache:
+              max-entries: 100
+              time-to-live-seconds: 3600
+        """
+      );
   }
 
   @Test
@@ -39,8 +46,15 @@ class EHCacheModulesFactoryTest {
 
     commonEHCacheModuleAsserter(module)
       .hasFiles("src/main/resources/config/ehcache/ehcache.xml")
-      .hasFile("src/main/resources/config/application.properties")
-      .containing("spring.cache.jcache.config=classpath:config/ehcache/ehcache.xml");
+      .hasFile("src/main/resources/config/application.yml")
+      .containing(
+        """
+        spring:
+          cache:
+            jcache:
+              config: classpath:config/ehcache/ehcache.xml
+        """
+      );
   }
 
   private JHipsterModuleAsserter commonEHCacheModuleAsserter(JHipsterModule module) {

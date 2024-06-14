@@ -2,19 +2,20 @@ package tech.jhipster.lite.generator.server.springboot.database.neo4j.domain;
 
 import static tech.jhipster.lite.module.domain.JHipsterModule.*;
 
-import tech.jhipster.lite.error.domain.*;
-import tech.jhipster.lite.module.domain.*;
-import tech.jhipster.lite.module.domain.docker.*;
-import tech.jhipster.lite.module.domain.file.*;
-import tech.jhipster.lite.module.domain.javadependency.*;
-import tech.jhipster.lite.module.domain.properties.*;
+import tech.jhipster.lite.module.domain.JHipsterModule;
+import tech.jhipster.lite.module.domain.LogLevel;
+import tech.jhipster.lite.module.domain.docker.DockerImages;
+import tech.jhipster.lite.module.domain.file.JHipsterSource;
+import tech.jhipster.lite.module.domain.javadependency.JavaDependency;
+import tech.jhipster.lite.module.domain.javadependency.JavaDependencyScope;
+import tech.jhipster.lite.module.domain.properties.JHipsterModuleProperties;
+import tech.jhipster.lite.shared.error.domain.Assert;
 
 public class Neo4jModuleFactory {
 
   private static final JHipsterSource SOURCE = from("server/springboot/database/neo4j");
 
   private static final String NEO4J_SECONDARY = "technical/infrastructure/secondary/neo4j";
-  private static final String DOCKER_COMPOSE_COMMAND = "docker compose -f src/main/docker/neo4j.yml up -d";
 
   private final DockerImages dockerImages;
 
@@ -31,7 +32,9 @@ public class Neo4jModuleFactory {
     //@formatter:off
     return moduleBuilder(properties)
       .documentation(documentationTitle("Neo4j DB"), SOURCE.template("neo4j.md"))
-      .startupCommand(DOCKER_COMPOSE_COMMAND)
+      .startupCommands()
+        .dockerCompose("src/main/docker/neo4j.yml")
+        .and()
       .context()
       .put("neo4jDockerImage", dockerImages.get("neo4j").fullName())
         .and()
@@ -47,7 +50,7 @@ public class Neo4jModuleFactory {
         .and()
       .springMainProperties()
         .set(propertyKey("spring.neo4j.uri"), propertyValue("bolt://localhost:7687"))
-        .set(propertyKey("spring.neo4j.pool.metrics-enabled"), propertyValue("true"))
+        .set(propertyKey("spring.neo4j.pool.metrics-enabled"), propertyValue(true))
         .and()
       .springTestProperties()
         .set(propertyKey("spring.neo4j.uri"), propertyValue("${TEST_NEO4J_URI}"))
